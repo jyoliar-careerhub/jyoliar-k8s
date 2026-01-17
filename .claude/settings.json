@@ -2,6 +2,17 @@
   "permissions": {
     "additionalDirectories": [
       "~/jyoliar-k8s-ansible"
+    ],
+    "allow": [
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(curl:*)",
+      "Bash(kubectl kustomize:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl describe:*)",
+      "WebFetch(domain:rook.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

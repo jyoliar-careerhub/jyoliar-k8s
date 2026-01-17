@@ -51,8 +51,16 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
 특정 환경의 클러스터에 접근할 때:
 
 ```bash
-export KUBECONFIG=.kube/{환경명}.config
-kubectl get nodes
+kubectl <동사> [리소스] [-n <namespace>] --kubeconfig .kube/{환경명}.config
+```
+
+**중요**: `kubectl` 바로 뒤에 동사(get, apply, delete 등)를 먼저 위치시키고, 옵션들(`-n`, `--kubeconfig` 등)은 뒤에 배치합니다.
+
+```bash
+# 예시
+kubectl get nodes --kubeconfig .kube/{환경명}.config
+kubectl get pods -n kube-system --kubeconfig .kube/{환경명}.config
+kubectl apply -f manifest.yaml -n default --kubeconfig .kube/{환경명}.config
 ```
 
 ## 관련 프로젝트 (jyoliar-k8s-ansible)
