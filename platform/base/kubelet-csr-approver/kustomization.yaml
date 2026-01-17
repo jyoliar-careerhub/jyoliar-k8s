@@ -9,3 +9,7 @@ helmCharts:
     version: 1.2.2
     releaseName: kubelet-csr-approver
     namespace: kube-system
+    valuesInline:
+      providerIpPrefixes:
+        - "10.0.25.0/24"
+      bypassDnsResolution: false
