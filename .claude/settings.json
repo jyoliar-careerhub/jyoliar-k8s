@@ -10,6 +10,7 @@
       "Bash(kubectl kustomize:*)",
       "Bash(kubectl get:*)",
       "Bash(kubectl describe:*)",
+      "Bash(kubectl wait:*)",
       "WebFetch(domain:rook.io)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)"
