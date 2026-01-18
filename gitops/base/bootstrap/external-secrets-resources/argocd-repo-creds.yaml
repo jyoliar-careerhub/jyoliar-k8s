@@ -16,7 +16,7 @@ spec:
           argocd.argoproj.io/secret-type: repository
       data:
         name: k8s
-        url: git@github.com:jyoliar-careerhub/onpremise-k8s
+        url: git@github.com:jae2274/jyoliar-k8s.git
         type: git
         sshPrivateKey: |
           {{ .sshPrivateKey }}

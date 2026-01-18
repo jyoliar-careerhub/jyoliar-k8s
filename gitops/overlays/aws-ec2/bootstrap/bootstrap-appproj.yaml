@@ -8,7 +8,7 @@ metadata:
 spec:
   description: Bootstrap applications for cluster infrastructure
   sourceRepos:
-    - git@github.com:jyoliar-careerhub/onpremise-k8s.git
+    - git@github.com:jae2274/jyoliar-k8s.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
