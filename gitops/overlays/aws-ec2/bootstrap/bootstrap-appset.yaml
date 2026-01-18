@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: bootstrap
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - name: argocd
+            path: gitops/overlays/aws-ec2/bootstrap/argocd
+            namespace: argocd
+          - name: external-secrets-resources
+            path: gitops/overlays/aws-ec2/bootstrap/external-secrets-resources
+            namespace: argocd
+  template:
+    metadata:
+      name: "{{ .name }}"
+    spec:
+      project: bootstrap
+      source:
+        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

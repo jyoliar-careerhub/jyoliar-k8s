@@ -23,4 +23,4 @@ spec:
   data:
     - secretKey: sshPrivateKey
       remoteRef:
-        key: "/jyo-liar/k8s/aws-ec2/git/ssh_private_key"
+        key: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_KEY"
