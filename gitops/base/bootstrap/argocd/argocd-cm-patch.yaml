@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+data:
+  resource.customizations: |
+    argoproj.io/ApplicationSet:
+      health.lua: |
+        health_status = {}
+
+        if obj.status == nil or obj.status.applicationStatus == nil then
+          return health_status
+        end
+
+        for i, app in ipairs(obj.status.applicationStatus) do
+          if app.status ~= "Healthy" then
+            health_status.message = app.message .. " (from " .. app.application .. ")"
+            health_status.status = app.status
+
+            return health_status
+          end
+        end
+
+        health_status.message = "All applications are healthy"
+        health_status.status = "Healthy"
+        return health_status

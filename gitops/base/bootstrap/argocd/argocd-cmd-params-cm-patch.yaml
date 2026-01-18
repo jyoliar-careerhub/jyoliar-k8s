@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+data:
+  applicationsetcontroller.enable.scm.providers: "false"
+  applicationsetcontroller.namespaces: "*"
+  application.namespaces: "*"
+  server.insecure: "true"
