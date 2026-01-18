@@ -1,0 +1,32 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: snippets-filter-watch
+  namespace: nginx-gateway
+rules:
+  - apiGroups:
+      - gateway.nginx.org
+    resources:
+      - snippetsfilters
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - gateway.nginx.org
+    resources:
+      - snippetsfilters/status
+    verbs:
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: snippets-filter-watch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: snippets-filter-watch
+subjects:
+  - kind: ServiceAccount
+    name: nginx-gateway
+    namespace: nginx-gateway

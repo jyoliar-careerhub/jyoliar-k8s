@@ -46,6 +46,8 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
 - ArgoCD Application으로 관리되는 애플리케이션 리소스
 - Kustomize base/overlays 패턴 사용
 
+**중요**: ArgoCD Application을 구성할 때, `base/` 경로의 리소스를 직접 참조하지 마십시오. 항상 `base/` 경로의 리소스를 참조하는 `overlays/` 경로를 참조하십시오.
+
 ## 클러스터 접근
 
 특정 환경의 클러스터에 접근할 때:
