@@ -69,3 +69,11 @@ kubectl apply -f manifest.yaml -n default --kubeconfig .kube/{환경명}.config
 
 - **노드 SSH 접근**: `jyoliar-k8s-ansible` 프로젝트의 inventory 파일에서 서버별 SSH 접근 정보 확인
 - **쿠버네티스 구성 확인**: `jyoliar-k8s-ansible` 프로젝트의 CLAUDE.md 및 관련 파일 참조
+
+## Git Commit 보안 가이드라인
+
+**중요**: Git commit 전에 반드시 다음 사항을 확인해야 합니다:
+
+- Secret, API Key, Password 등 민감한 정보가 코드에 하드코딩되어 있지 않은지 확인
+- Kubernetes Secret 리소스에 실제 값이 아닌 placeholder나 ExternalSecret 참조를 사용하는지 확인
+- 환경 변수나 설정 파일에 민감한 정보가 노출되지 않았는지 확인

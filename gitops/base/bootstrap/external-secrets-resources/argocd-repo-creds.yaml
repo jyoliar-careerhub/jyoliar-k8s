@@ -1,0 +1,26 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: argocd-repo-creds
+  namespace: argocd
+spec:
+  secretStoreRef:
+    name: aws-parameter-store
+    kind: SecretStore
+  refreshInterval: 1h
+  target:
+    name: k8s-repo-creds
+    template:
+      metadata:
+        labels:
+          argocd.argoproj.io/secret-type: repository
+      data:
+        name: k8s
+        url: git@github.com:jyoliar-careerhub/onpremise-k8s
+        type: git
+        sshPrivateKey: |
+          {{ .sshPrivateKey }}
+  data:
+    - secretKey: sshPrivateKey
+      remoteRef:
+        key: "/jyo-liar/k8s/aws-ec2/git/ssh_private_key"
