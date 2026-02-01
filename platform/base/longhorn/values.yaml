@@ -1,0 +1,19 @@
+# Longhorn chart 설정 (dependency 이름이 키)
+longhorn:
+  persistence:
+    defaultClass: true
+    defaultClassReplicaCount: 2
+    defaultFsType: ext4
+    reclaimPolicy: Delete
+
+  defaultSettings:
+    defaultReplicaCount: 2
+    defaultDataPath: /var/lib/longhorn
+    defaultDataLocality: best-effort
+    storageOverProvisioningPercentage: 200
+    storageMinimalAvailablePercentage: 15
+    replicaAutoBalance: best-effort
+    upgradeChecker: false
+    nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    # 레이블이 있는 노드에만 기본 디스크 생성
+    createDefaultDiskLabeledNodes: true
