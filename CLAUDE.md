@@ -59,6 +59,20 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
 
 **중요**: ArgoCD Application을 구성할 때, `base/` 경로의 리소스를 직접 참조하지 마십시오. 항상 `base/` 경로의 리소스를 참조하는 `overlays/` 경로를 참조하십시오.
 
+## Kustomize 사용 규칙
+
+Kustomize 관련 작업 시 **반드시 overlays 경로를 사용**해야 합니다:
+
+```bash
+# 올바른 사용법
+kubectl kustomize platform/overlays/{환경명}/
+kubectl kustomize gitops/overlays/{환경명}/
+
+# 잘못된 사용법 (금지)
+kubectl kustomize platform/base/
+kubectl kustomize gitops/base/
+```
+
 ## 클러스터 접근
 
 특정 환경의 클러스터에 접근할 때:
