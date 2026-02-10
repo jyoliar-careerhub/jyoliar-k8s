@@ -11,6 +11,8 @@ spec:
         elements:
           - name: nginx-gateway-config
             path: gitops/overlays/aws-ec2/system/nginx-gateway-config
+          - name: argocd-config
+            path: gitops/overlays/aws-ec2/system/argocd-config
   template:
     metadata:
       name: "{{ .name }}"
