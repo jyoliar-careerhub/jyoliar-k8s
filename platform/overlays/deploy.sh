@@ -40,44 +40,20 @@ echo "Deploying platform components for environment: $ENV_NAME"
 echo "Using kubeconfig: $KUBECONFIG_FILE"
 echo ""
 
-deploy_kustomize() {
-    local dir="$1"
-    local name="$(basename "$dir")"
+cd "$ENV_DIR"
 
-    echo "[$name] Deploying with Kustomize..."
-    kubectl kustomize "$dir" | kubectl apply -f -
-    echo "[$name] Done"
+# Deploy Helm releases
+if [ -f "helmfile.yaml" ]; then
+    echo "=== Deploying Helm releases ==="
+    helmfile sync
     echo ""
-}
+fi
 
-deploy_helm() {
-    local dir="$1"
-    local name="$(basename "$dir")"
-
-    echo "[$name] Deploying with Helm..."
-
-    cd "$dir"
-    helm dependency update
-    helm upgrade --install "$name" . --wait
-    cd - > /dev/null
-
-    echo "[$name] Done"
+# Deploy Kustomize resources
+if [ -f "kustomization.yaml" ]; then
+    echo "=== Deploying Kustomize resources ==="
+    kubectl kustomize . | kubectl apply -f -
     echo ""
-}
-
-for component_dir in "$ENV_DIR"/*/; do
-    [ -d "$component_dir" ] || continue
-
-    component_name="$(basename "$component_dir")"
-
-    if [ -f "$component_dir/Chart.yaml" ]; then
-        deploy_helm "$component_dir"
-    elif [ -f "$component_dir/kustomization.yaml" ]; then
-        deploy_kustomize "$component_dir"
-    else
-        echo "[$component_name] Skipping: No Chart.yaml or kustomization.yaml found"
-        echo ""
-    fi
-done
+fi
 
 echo "All platform components deployed successfully!"

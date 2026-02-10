@@ -1,0 +1,25 @@
+repositories:
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+  - name: longhorn
+    url: https://charts.longhorn.io
+  - name: kubelet-csr-approver
+    url: https://postfinance.github.io/kubelet-csr-approver
+
+releases:
+  - name: external-secrets
+    namespace: external-secrets
+    createNamespace: true
+    chart: ./external-secrets
+    wait: true
+
+  - name: kubelet-csr-approver
+    namespace: kube-system
+    chart: ./kubelet-csr-approver
+    wait: true
+
+  - name: longhorn
+    namespace: longhorn-system
+    createNamespace: true
+    chart: ./longhorn
+    wait: true
