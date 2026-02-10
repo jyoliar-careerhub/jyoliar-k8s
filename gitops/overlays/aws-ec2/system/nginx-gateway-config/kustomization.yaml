@@ -3,3 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../../../base/system/nginx-gateway-config
+  - nginx-proxy.yaml
+
+patches:
+  - path: gateway-patch.yaml
