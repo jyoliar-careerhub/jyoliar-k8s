@@ -13,6 +13,8 @@ spec:
             path: gitops/overlays/aws-ec2/bootstrap
           - name: controllers
             path: gitops/overlays/aws-ec2/controllers
+          - name: system
+            path: gitops/overlays/aws-ec2/system
   template:
     metadata:
       name: "{{ .name }}"

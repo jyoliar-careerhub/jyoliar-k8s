@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: system
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - name: nginx-gateway-config
+            path: gitops/overlays/aws-ec2/system/nginx-gateway-config
+  template:
+    metadata:
+      name: "{{ .name }}"
+    spec:
+      project: system
+      source:
+        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - CreateNamespace=true

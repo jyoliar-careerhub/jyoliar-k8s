@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: internal-nginx-gateway
+spec:
+  gatewayClassName: nginx
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      protocol: HTTP
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+  infrastructure:
+      parametersRef:
+          group: gateway.nginx.org
+          kind: NginxProxy
+          name: ncp-lb-nginxproxy-internal
