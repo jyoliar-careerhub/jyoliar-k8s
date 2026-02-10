@@ -17,8 +17,3 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-  infrastructure:
-      parametersRef:
-          group: gateway.nginx.org
-          kind: NginxProxy
-          name: ncp-lb-nginxproxy-internal
