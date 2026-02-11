@@ -59,6 +59,29 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
 
 **중요**: ArgoCD Application을 구성할 때, `base/` 경로의 리소스를 직접 참조하지 마십시오. 항상 `base/` 경로의 리소스를 참조하는 `overlays/` 경로를 참조하십시오.
 
+## 클러스터 초기 구축
+
+새 클러스터를 구축할 때 아래 스크립트들을 **순차적으로** 실행해야 합니다:
+
+```bash
+# 1. Platform 리소스 배포 (Longhorn, ArgoCD, External Secrets 등)
+./platform/overlays/deploy.sh {환경명}
+
+# 2. AWS Credentials Secret 생성 (External Secrets용)
+./platform/overlays/create-aws-credentials.sh \
+    -a <AWS_ACCESS_KEY_ID> \
+    -s <AWS_SECRET_ACCESS_KEY> \
+    -k .kube/{환경명}.config
+
+# 3. GitOps 리소스 배포 (ArgoCD ApplicationSet 부트스트랩)
+./gitops/overlays/deploy.sh {환경명}
+```
+
+**실행 순서가 중요합니다:**
+- `platform/overlays/deploy.sh`: ArgoCD 및 External Secrets Operator 설치
+- `platform/overlays/create-aws-credentials.sh`: ExternalSecret이 사용할 AWS 인증 정보를 argocd 네임스페이스에 생성
+- `gitops/overlays/deploy.sh`: ArgoCD Application 부트스트랩 (aws-credentials 시크릿 존재 필수)
+
 ## Kustomize 사용 규칙
 
 Kustomize 관련 작업 시 **반드시 overlays 경로를 사용**해야 합니다:
