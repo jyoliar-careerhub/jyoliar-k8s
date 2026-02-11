@@ -15,6 +15,9 @@ spec:
           - name: prometheus-operator
             path: gitops/overlays/aws-ec2/controllers/prometheus-operator
             namespace: prometheus
+          - name: mongodb-operator
+            path: gitops/overlays/aws-ec2/controllers/mongodb-operator
+            namespace: mongodb
   template:
     metadata:
       name: "{{ .name }}"
