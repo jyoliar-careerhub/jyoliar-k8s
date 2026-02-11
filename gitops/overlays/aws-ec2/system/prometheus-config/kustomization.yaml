@@ -13,7 +13,7 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - alertmanager.aws-ec2.jyoliar.com
+      - alertmanager.jyoliar.com
 - target:
     kind: HTTPRoute
     name: grafana-httproute
@@ -21,7 +21,7 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - grafana.aws-ec2.jyoliar.com
+      - grafana.jyoliar.com
 - target:
     kind: HTTPRoute
     name: prometheus-httproute
@@ -29,4 +29,4 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - prometheus.aws-ec2.jyoliar.com
+      - prometheus.jyoliar.com
