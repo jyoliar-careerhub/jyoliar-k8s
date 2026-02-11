@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - k8s-resources-prometheusrule.yaml
+  - k8s-apps-prometheusrule.yaml
+  - k8s-storage-prometheusrule.yaml
+  - k8s-node-exporter-prometheusrule.yaml
+  - standard-cluster-prometheusrules.yaml

@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-operator-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  ignoreDifferences:
+  - group: ""
+    kind: Secret
+    name: monitoring-grafana
+    namespace: prometheus
+    jsonPointers:
+    - /data/admin-password
+  - group: "apps"
+    kind: Deployment
+    name: monitoring-grafana
+    namespace: prometheus
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1secret
+  destination:
+    namespace: prometheus
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts/
+    targetRevision: 79.11.0
+    helm:
+      releaseName: monitoring
+      valuesObject:
+        namespaceOverride: "prometheus"
+        defaultRules:
+          create: true
+          rules:
+            kubeControllerManager: false
+            kubeProxy: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: true
+            kubernetesResources: false
+            kubernetesApps: false
+            kubernetesStorage: false
+            nodeExporterAlerting: false
+        alertmanager:
+          alertmanagerSpec:
+            alertmanagerConfigMatcherStrategy:
+              type: None
+            externalUrl: null
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    automated:
+      prune: true
+      selfHeal: true

@@ -12,6 +12,9 @@ spec:
           - name: nginx-gateway
             path: gitops/overlays/aws-ec2/controllers/nginx-gateway
             namespace: nginx-gateway
+          - name: prometheus-operator
+            path: gitops/overlays/aws-ec2/controllers/prometheus-operator
+            namespace: prometheus
   template:
     metadata:
       name: "{{ .name }}"
