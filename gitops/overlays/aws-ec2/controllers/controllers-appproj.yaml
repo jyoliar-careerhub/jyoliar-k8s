@@ -9,6 +9,7 @@ spec:
   description: Controller applications for cluster infrastructure
   sourceRepos:
     - git@github.com:jae2274/jyoliar-k8s.git
+    - https://prometheus-community.github.io/helm-charts/
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
