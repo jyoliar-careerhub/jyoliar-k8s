@@ -4,4 +4,5 @@ metadata:
   name: argocd-httproute
   namespace: argocd
 spec:
-  hostnames: []
+  hostnames:
+    - argocd.jyo-liar.com
