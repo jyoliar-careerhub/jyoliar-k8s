@@ -12,6 +12,9 @@
       "Bash(kubectl describe:*)",
       "Bash(kubectl wait:*)",
       "Bash(kubectl logs:*)",
+      "Bash(./platform/overlays/deploy.sh:*)",
+      "Bash(./platform/overlays/create-aws-credentials.sh:*)",
+      "Bash(./gitops/overlays/deploy.sh:*)",
       "WebFetch(domain:rook.io)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)"
