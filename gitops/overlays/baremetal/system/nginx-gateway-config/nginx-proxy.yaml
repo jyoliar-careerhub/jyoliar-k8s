@@ -1,0 +1,9 @@
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: internal-nginx-proxy
+  namespace: nginx-gateway
+spec:
+  kubernetes:
+    service:
+      type: LoadBalancer

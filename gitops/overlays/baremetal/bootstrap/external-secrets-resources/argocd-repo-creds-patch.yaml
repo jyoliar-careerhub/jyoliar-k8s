@@ -1,0 +1,10 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: argocd-repo-creds
+  namespace: argocd
+spec:
+  data:
+    - secretKey: sshPrivateKey
+      remoteRef:
+        key: "/jyo-liar/k8s/baremetal/git/ssh_private_key"
