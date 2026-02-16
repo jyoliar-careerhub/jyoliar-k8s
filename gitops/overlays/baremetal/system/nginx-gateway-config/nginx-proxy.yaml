@@ -7,3 +7,4 @@ spec:
   kubernetes:
     service:
       type: LoadBalancer
+      externalTrafficPolicy: Cluster
