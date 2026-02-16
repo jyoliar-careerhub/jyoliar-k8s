@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kubelet-csr-approver-wrapper
+description: Kubelet CSR Approver
+type: application
+version: 0.1.0
+appVersion: "1.2.2"
+
+dependencies:
+  - name: kubelet-csr-approver
+    version: 1.2.2
+    repository: https://postfinance.github.io/kubelet-csr-approver

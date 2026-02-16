@@ -1,0 +1,4 @@
+kubelet-csr-approver:
+  providerIpPrefixes:
+    - "10.18.0.0/16"
+  bypassDnsResolution: true

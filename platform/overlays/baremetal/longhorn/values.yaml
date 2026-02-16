@@ -1,0 +1,17 @@
+longhorn:
+  persistence:
+    defaultClass: true
+    defaultClassReplicaCount: 2
+    defaultFsType: ext4
+    reclaimPolicy: Delete
+
+  defaultSettings:
+    defaultReplicaCount: 2
+    defaultDataPath: /var/lib/longhorn
+    defaultDataLocality: best-effort
+    storageOverProvisioningPercentage: 200
+    storageMinimalAvailablePercentage: 15
+    replicaAutoBalance: best-effort
+    upgradeChecker: false
+    nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    createDefaultDiskLabeledNodes: true
