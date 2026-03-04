@@ -6,7 +6,7 @@ metadata:
 spec:
   secretStoreRef:
     name: aws-parameter-store
-    kind: SecretStore
+    kind: ClusterSecretStore
   refreshInterval: 1h
   target:
     name: k8s-repo-creds
