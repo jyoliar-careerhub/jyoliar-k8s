@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: alertmanager-config
+spec:
+  route:
+    receiver: 'critical-slack-notifications'
+    groupBy: [severity, alertname]
+  receivers:
+    - name: 'critical-slack-notifications'
+      slackConfigs:
+        - apiURL:
+            name: critical-slack-webhook
+            key: slack-webhook-url
+          channel: '#alerts'
+          sendResolved: true
+          title: |-
+            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+          text: |-
+            {{ range .Alerts }}
+            *{{ .Labels.severity }}* - {{ .Annotations.summary }}
+            {{ .Annotations.description }}
+            {{ end }}

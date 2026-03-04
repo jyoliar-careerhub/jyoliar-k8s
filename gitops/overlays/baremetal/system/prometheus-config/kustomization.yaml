@@ -4,6 +4,8 @@ namespace: prometheus
 
 resources:
   - ../../../../base/system/prometheus-config
+  - alert-slack-webhook-secret.yaml
+  - alertmanagerconfig.yaml
 
 patches:
 - target:
