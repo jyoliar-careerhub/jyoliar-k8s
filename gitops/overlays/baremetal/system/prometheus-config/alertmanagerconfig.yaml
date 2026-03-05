@@ -7,6 +7,12 @@ spec:
     receiver: 'info-slack-notifications'
     groupBy: [severity, alertname]
     routes:
+      - receiver: 'info-slack-notifications'
+        repeatInterval: 24h
+        matchers:
+          - name: alertname
+            value: Watchdog
+            matchType: =
       - receiver: 'critical-slack-notifications'
         matchers:
           - name: severity
