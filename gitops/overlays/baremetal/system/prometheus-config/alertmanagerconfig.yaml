@@ -4,14 +4,53 @@ metadata:
   name: alertmanager-config
 spec:
   route:
-    receiver: 'critical-slack-notifications'
+    receiver: 'info-slack-notifications'
     groupBy: [severity, alertname]
+    routes:
+      - receiver: 'critical-slack-notifications'
+        matchers:
+          - name: severity
+            value: critical
+            matchType: =
+      - receiver: 'warn-slack-notifications'
+        matchers:
+          - name: severity
+            value: warning
+            matchType: =
   receivers:
+    - name: 'info-slack-notifications'
+      slackConfigs:
+        - apiURL:
+            name: alert-slack-webhook
+            key: info
+          channel: '#alerts'
+          sendResolved: true
+          title: |-
+            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+          text: |-
+            {{ range .Alerts }}
+            *{{ .Labels.severity }}* - {{ .Annotations.summary }}
+            {{ .Annotations.description }}
+            {{ end }}
+    - name: 'warn-slack-notifications'
+      slackConfigs:
+        - apiURL:
+            name: alert-slack-webhook
+            key: warn
+          channel: '#alerts'
+          sendResolved: true
+          title: |-
+            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+          text: |-
+            {{ range .Alerts }}
+            *{{ .Labels.severity }}* - {{ .Annotations.summary }}
+            {{ .Annotations.description }}
+            {{ end }}
     - name: 'critical-slack-notifications'
       slackConfigs:
         - apiURL:
-            name: critical-slack-webhook
-            key: slack-webhook-url
+            name: alert-slack-webhook
+            key: critical
           channel: '#alerts'
           sendResolved: true
           title: |-
