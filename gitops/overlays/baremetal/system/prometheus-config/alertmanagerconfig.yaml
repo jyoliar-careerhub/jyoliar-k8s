@@ -25,8 +25,9 @@ spec:
             key: info
           channel: '#alerts'
           sendResolved: true
+          color: '#2EB67D'
           title: |-
-            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+            [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
             {{ range .Alerts }}
             *{{ .Labels.severity }}* - {{ .Annotations.summary }}
@@ -39,8 +40,9 @@ spec:
             key: warn
           channel: '#alerts'
           sendResolved: true
+          color: '#ECB22E'
           title: |-
-            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+            [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
             {{ range .Alerts }}
             *{{ .Labels.severity }}* - {{ .Annotations.summary }}
@@ -53,8 +55,9 @@ spec:
             key: critical
           channel: '#alerts'
           sendResolved: true
+          color: '#E01E5A'
           title: |-
-            [{{ .Status | toUpper }}] prod {{ .CommonLabels.alertname }}
+            [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
             {{ range .Alerts }}
             *{{ .Labels.severity }}* - {{ .Annotations.summary }}
