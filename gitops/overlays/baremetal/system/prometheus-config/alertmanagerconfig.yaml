@@ -25,7 +25,7 @@ spec:
             key: info
           channel: '#alerts'
           sendResolved: true
-          color: '#2EB67D'
+          color: '{{ if eq .Status "firing" }}#2EB67D{{ else }}#2EB67D{{ end }}'
           title: |-
             [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
@@ -40,7 +40,7 @@ spec:
             key: warn
           channel: '#alerts'
           sendResolved: true
-          color: '#ECB22E'
+          color: '{{ if eq .Status "firing" }}#ECB22E{{ else }}#2EB67D{{ end }}'
           title: |-
             [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
@@ -55,7 +55,7 @@ spec:
             key: critical
           channel: '#alerts'
           sendResolved: true
-          color: '#E01E5A'
+          color: '{{ if eq .Status "firing" }}#E01E5A{{ else }}#2EB67D{{ end }}'
           title: |-
             [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
           text: |-
