@@ -15,6 +15,12 @@ spec:
           - name: external-secrets-resources
             path: gitops/overlays/baremetal/bootstrap/external-secrets-resources
             namespace: argocd
+          - name: cloudflare-tunnel
+            path: gitops/overlays/baremetal/bootstrap/cloudflare-tunnel
+            namespace: cloudflare-system
+          - name: oidc-provider
+            path: gitops/overlays/baremetal/bootstrap/oidc-provider
+            namespace: oidc-provider
   template:
     metadata:
       name: "{{ .name }}"

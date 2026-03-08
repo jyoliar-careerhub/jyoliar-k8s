@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oidc-server
+  namespace: oidc-provider
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oidc-server
+  template:
+    metadata:
+      labels:
+        app: oidc-server
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: oidc-discovery
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /.well-known/openid-configuration
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: oidc-nginx-config
+        - name: oidc-discovery
+          configMap:
+            name: oidc-discovery
