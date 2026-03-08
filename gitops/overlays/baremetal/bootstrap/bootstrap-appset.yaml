@@ -12,18 +12,36 @@ spec:
           - name: argocd
             path: gitops/overlays/baremetal/bootstrap/argocd
             namespace: argocd
-          - name: external-secrets-resources
-            path: gitops/overlays/baremetal/bootstrap/external-secrets-resources
-            namespace: argocd
+            phase: "1"
           - name: cloudflare-tunnel
             path: gitops/overlays/baremetal/bootstrap/cloudflare-tunnel
             namespace: cloudflare-system
+            phase: "1"
           - name: oidc-provider
             path: gitops/overlays/baremetal/bootstrap/oidc-provider
             namespace: oidc-provider
+            phase: "1"
+          - name: external-secrets-resources
+            path: gitops/overlays/baremetal/bootstrap/external-secrets-resources
+            namespace: argocd
+            phase: "2"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: bootstrap-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: bootstrap-phase
+              operator: In
+              values: ["2"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        bootstrap-phase: "{{ .phase }}"
     spec:
       project: bootstrap
       source:

@@ -15,9 +15,27 @@ spec:
             path: gitops/overlays/baremetal/controllers
           - name: system
             path: gitops/overlays/baremetal/system
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["bootstrap"]
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["controllers"]
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["system"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        root: "{{ .name }}"
     spec:
       project: default
       source:

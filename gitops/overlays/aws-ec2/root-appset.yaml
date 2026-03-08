@@ -15,9 +15,27 @@ spec:
             path: gitops/overlays/aws-ec2/controllers
           - name: system
             path: gitops/overlays/aws-ec2/system
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["bootstrap"]
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["controllers"]
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["system"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        root: "{{ .name }}"
     spec:
       project: default
       source:
