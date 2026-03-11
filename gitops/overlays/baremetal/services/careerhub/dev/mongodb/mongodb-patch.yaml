@@ -1,0 +1,26 @@
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: careerhub-mongodb
+spec:
+  members: 1
+  arbiters: 0
+  statefulSet:
+    spec:
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            resources:
+              requests:
+                storage: 5Gi
+        - metadata:
+            name: logs-volume
+          spec:
+            resources:
+              requests:
+                storage: 1Gi
+      template:
+        spec:
+          affinity:
+            podAntiAffinity: null

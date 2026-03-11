@@ -1,0 +1,3 @@
+resources:
+  - careerhub-prod-appproj.yaml
+  - careerhub-prod-appset.yaml

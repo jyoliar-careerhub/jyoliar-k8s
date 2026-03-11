@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - name: careerhub-dev
+            path: gitops/overlays/baremetal/services/careerhub/dev
+            namespace: careerhub-dev
+          - name: careerhub-prod
+            path: gitops/overlays/baremetal/services/careerhub/prod
+            namespace: careerhub-prod
+  template:
+    metadata:
+      name: "{{ .name }}"
+    spec:
+      project: services
+      source:
+        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

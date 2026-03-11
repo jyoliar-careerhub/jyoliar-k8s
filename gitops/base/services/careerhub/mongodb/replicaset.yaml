@@ -1,0 +1,64 @@
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: careerhub-mongodb
+spec:
+  members: OVERRIDE_REQUIRED
+  arbiters: OVERRIDE_REQUIRED
+  type: ReplicaSet
+  version: "8.0.11"
+  security:
+    authentication:
+      modes: ["SCRAM"]
+    roles: []
+  users:
+    - name: mongodb-admin
+      db: admin
+      passwordSecretRef:
+        name: mongodb-admin-password
+      roles:
+        - name: clusterAdmin
+          db: admin
+        - name: userAdminAnyDatabase
+          db: admin
+      scramCredentialsSecretName: mongodb-admin-scram
+  statefulSet:
+    spec:
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume # volumeMounts.name과 동일해야 함
+          spec:
+            accessModes: ["ReadWriteOnce"] # RWO, RWX, ROX 등
+            resources:
+              requests:
+                storage: OVERRIDE_REQUIRED
+            volumeMode: Filesystem # 또는 Block
+        - metadata:
+            name: logs-volume # volumeMounts.name과 동일해야 함
+          spec:
+            accessModes: ["ReadWriteOnce"] # RWO, RWX, ROX 등
+            resources:
+              requests:
+                storage: OVERRIDE_REQUIRED
+            volumeMode: Filesystem # 또는 Block
+      template:
+        metadata:
+          labels:
+            scheduling.mongodb.com/cluster: careerhub
+        spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: node.longhorn.io/create-default-disk
+                        operator: In
+                        values:
+                          - "true"
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      scheduling.mongodb.com/cluster: careerhub
+                  topologyKey: kubernetes.io/hostname

@@ -15,6 +15,8 @@ spec:
             path: gitops/overlays/baremetal/controllers
           - name: system
             path: gitops/overlays/baremetal/system
+          - name: services
+            path: gitops/overlays/baremetal/services
   strategy:
     type: RollingSync
     rollingSync:
@@ -31,6 +33,10 @@ spec:
             - key: root
               operator: In
               values: ["system"]
+        - matchExpressions:
+            - key: root
+              operator: In
+              values: ["services"]
   template:
     metadata:
       name: "{{ .name }}"
