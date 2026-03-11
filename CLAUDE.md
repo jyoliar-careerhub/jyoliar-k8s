@@ -96,6 +96,37 @@ kubectl kustomize platform/base/
 kubectl kustomize gitops/base/
 ```
 
+## Kustomize Patch 규칙
+
+Patch는 **Strategic Merge Patch** 방식만 사용합니다. JSON patch (`- op: replace` 등)는 사용하지 않습니다.
+
+- Patch 파일에 `apiVersion`, `kind`, `metadata`를 포함하여 대상 리소스를 명시
+- `kustomization.yaml`에서는 `- path:` 만 사용 (`target` 지정 불필요)
+- 기존 필드를 제거해야 할 경우 (예: `valueFrom` → `value`로 교체), 제거할 필드를 빈 값으로 지정
+
+```yaml
+# patch 파일 예시
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: my-container
+          env:
+            - name: MY_VAR
+              value: "new-value"
+              valueFrom:       # 빈 값으로 지정하여 기존 valueFrom 제거
+```
+
+```yaml
+# kustomization.yaml 예시
+patches:
+  - path: my-patch.yaml
+```
+
 ## 클러스터 접근
 
 특정 환경의 클러스터에 접근할 때:
