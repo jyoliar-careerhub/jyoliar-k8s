@@ -5,6 +5,7 @@ namespace: mongodb
 resources:
   - https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/1.7.0/public/crds.yaml
   - https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/1.7.0/public/mongodb-kubernetes.yaml
+  - cluster-role.yaml
 
 patches:
   - path: watch-namespace-patch.yaml
