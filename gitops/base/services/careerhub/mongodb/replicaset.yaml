@@ -6,7 +6,7 @@ spec:
   members: OVERRIDE_REQUIRED
   arbiters: OVERRIDE_REQUIRED
   type: ReplicaSet
-  version: "8.0.11"
+  version: "8.0.19"
   security:
     authentication:
       modes: ["SCRAM"]
