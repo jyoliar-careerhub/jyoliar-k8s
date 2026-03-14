@@ -45,7 +45,8 @@ spec:
         grafana:
           sidecar:
             datasources:
-              initDatasources: true
+              env:
+                REQ_SKIP_INIT: "false"
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:
