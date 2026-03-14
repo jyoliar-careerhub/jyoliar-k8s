@@ -42,6 +42,10 @@ spec:
             kubernetesApps: false
             kubernetesStorage: false
             nodeExporterAlerting: false
+        grafana:
+          sidecar:
+            datasources:
+              skipReload: false
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:
