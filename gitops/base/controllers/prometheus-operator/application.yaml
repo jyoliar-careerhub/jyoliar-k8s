@@ -26,7 +26,7 @@ spec:
   source:
     chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts/
-    targetRevision: 79.11.0
+    targetRevision: 82.10.3
     helm:
       releaseName: monitoring
       valuesObject:
@@ -42,11 +42,9 @@ spec:
             kubernetesApps: false
             kubernetesStorage: false
             nodeExporterAlerting: false
-        grafana:
-          sidecar:
-            datasources:
-              env:
-                REQ_SKIP_INIT: "false"
+        crds:
+          upgradeJob:
+            enabled: true
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:
