@@ -45,7 +45,7 @@ spec:
         grafana:
           sidecar:
             datasources:
-              skipReload: false
+              initDatasources: true
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:
