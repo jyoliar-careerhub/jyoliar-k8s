@@ -22,6 +22,14 @@ spec:
         - name: userAdminAnyDatabase
           db: admin
       scramCredentialsSecretName: mongodb-admin-scram
+    - name: mongodb-readonly
+      db: admin
+      passwordSecretRef:
+        name: mongodb-readonly-password
+      roles:
+        - name: readAnyDatabase
+          db: admin
+      scramCredentialsSecretName: mongodb-readonly-scram
   statefulSet:
     spec:
       volumeClaimTemplates:
