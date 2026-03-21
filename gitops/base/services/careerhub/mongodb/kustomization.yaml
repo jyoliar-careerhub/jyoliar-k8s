@@ -5,3 +5,4 @@ resources:
   - service-accounts.yaml
   - password.yaml
   - replicaset.yaml
+  - readonly-user.yaml

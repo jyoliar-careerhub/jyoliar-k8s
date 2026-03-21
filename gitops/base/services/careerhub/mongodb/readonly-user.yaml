@@ -1,0 +1,48 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: mongodb-readonly-password
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  length: 32
+  digits: 8
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: mongodb-readonly-password
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  refreshPolicy: CreatedOnce
+  target:
+    name: mongodb-readonly-password
+    immutable: true
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: mongodb-readonly-password
+---
+apiVersion: mongodb.com/v1
+kind: MongoDBUser
+metadata:
+  name: mongodb-readonly
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  username: mongodb-readonly
+  db: admin
+  mongodbResourceRef:
+    name: careerhub-mongodb
+  passwordSecretKeyRef:
+    name: mongodb-readonly-password
+    key: password
+  roles:
+    - name: readAnyDatabase
+      db: admin
