@@ -11,8 +11,8 @@ spec:
         elements:
           - name: careerhub-dev-mongodb
             path: gitops/overlays/baremetal/services/careerhub/dev/mongodb
-          - name: careerhub-dev-apps
-            path: gitops/overlays/baremetal/services/careerhub/dev/apps
+          # - name: careerhub-dev-apps
+          #   path: gitops/overlays/baremetal/services/careerhub/dev/apps
   template:
     metadata:
       name: "{{ .name }}"
