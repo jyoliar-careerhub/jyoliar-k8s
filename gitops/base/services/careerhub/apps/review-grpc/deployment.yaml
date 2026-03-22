@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-service
+  labels:
+    app: review-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: review-service
+  template:
+    metadata:
+      labels:
+        app: review-service
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: review-service
+          image: REVIEW_SERVICE
+          ports:
+            - name: restapi-grpc
+              containerPort: 50051
+            - name: crawler-grpc
+              containerPort: 50052
+            - name: provider-grpc
+              containerPort: 50053
+          env:
+            - name: RESTAPI_GRPC_PORT
+              value: "50051"
+            - name: CRAWLER_GRPC_PORT
+              value: "50052"
+            - name: PROVIDER_GRPC_PORT
+              value: "50053"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-mongodb-review-review-app
+                  key: connectionString.standardSrv
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-mongodb-review-review-app
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-mongodb-review-review-app
+                  key: password

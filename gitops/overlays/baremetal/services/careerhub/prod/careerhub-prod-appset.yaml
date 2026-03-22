@@ -11,11 +11,27 @@ spec:
         elements:
           - name: careerhub-prod-mongodb
             path: gitops/overlays/baremetal/services/careerhub/prod/mongodb
+            phase: "1"
           - name: careerhub-prod-apps
             path: gitops/overlays/baremetal/services/careerhub/prod/apps
+            phase: "2"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: careerhub-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: careerhub-phase
+              operator: In
+              values: ["2"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        careerhub-phase: "{{ .phase }}"
     spec:
       project: careerhub-prod
       source:

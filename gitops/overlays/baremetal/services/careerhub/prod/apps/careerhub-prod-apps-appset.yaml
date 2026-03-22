@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: careerhub-prod-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - name: careerhub-prod-secrets
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/secrets
+            phase: "1"
+          - name: careerhub-prod-review-grpc
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/review-grpc
+            phase: "2"
+          # - name: careerhub-prod-posting-grpc
+          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/posting-grpc
+          #   phase: "2"
+          # - name: careerhub-prod-userinfo-grpc
+          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/userinfo-grpc
+          #   phase: "2"
+          # - name: careerhub-prod-api-composer
+          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/api-composer
+          #   phase: "2"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["2"]
+  template:
+    metadata:
+      name: "{{ .name }}"
+      labels:
+        apps-phase: "{{ .phase }}"
+    spec:
+      project: careerhub-prod-apps
+      source:
+        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: careerhub-prod
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - CreateNamespace=true

@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-restapi
+  labels:
+    app: review-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: 80
+      targetPort: restapi-grpc
+  selector:
+    app: review-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-crawler
+  labels:
+    app: review-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: 80
+      targetPort: crawler-grpc
+  selector:
+    app: review-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-provider
+  labels:
+    app: review-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: 80
+      targetPort: provider-grpc
+  selector:
+    app: review-service
