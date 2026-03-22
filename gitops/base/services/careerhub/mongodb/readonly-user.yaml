@@ -21,7 +21,7 @@ spec:
   refreshPolicy: CreatedOnce
   target:
     name: mongodb-readonly-password
-    immutable: true
+
   dataFrom:
     - sourceRef:
         generatorRef:
