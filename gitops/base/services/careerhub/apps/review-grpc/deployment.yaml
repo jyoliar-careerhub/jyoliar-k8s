@@ -17,6 +17,8 @@ spec:
       restartPolicy: Always
       nodeSelector:
         kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
       containers:
         - name: review-service
           image: REVIEW_SERVICE
