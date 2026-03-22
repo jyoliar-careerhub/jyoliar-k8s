@@ -30,6 +30,54 @@ spec:
         - name: readAnyDatabase
           db: admin
       scramCredentialsSecretName: mongodb-readonly-scram
+    - name: review-app
+      db: review
+      passwordSecretRef:
+        name: review-app-password
+      roles:
+        - name: readWrite
+          db: review
+      scramCredentialsSecretName: review-app-scram
+    - name: review-migrator
+      db: review
+      passwordSecretRef:
+        name: review-migrator-password
+      roles:
+        - name: dbOwner
+          db: review
+      scramCredentialsSecretName: review-migrator-scram
+    - name: posting-app
+      db: posting
+      passwordSecretRef:
+        name: posting-app-password
+      roles:
+        - name: readWrite
+          db: posting
+      scramCredentialsSecretName: posting-app-scram
+    - name: posting-migrator
+      db: posting
+      passwordSecretRef:
+        name: posting-migrator-password
+      roles:
+        - name: dbOwner
+          db: posting
+      scramCredentialsSecretName: posting-migrator-scram
+    - name: userinfo-app
+      db: userinfo
+      passwordSecretRef:
+        name: userinfo-app-password
+      roles:
+        - name: readWrite
+          db: userinfo
+      scramCredentialsSecretName: userinfo-app-scram
+    - name: userinfo-migrator
+      db: userinfo
+      passwordSecretRef:
+        name: userinfo-migrator-password
+      roles:
+        - name: dbOwner
+          db: userinfo
+      scramCredentialsSecretName: userinfo-migrator-scram
   statefulSet:
     spec:
       volumeClaimTemplates:

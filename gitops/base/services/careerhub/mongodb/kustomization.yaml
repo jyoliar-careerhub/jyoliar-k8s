@@ -6,3 +6,4 @@ resources:
   - password.yaml
   - replicaset.yaml
   - readonly-user.yaml
+  - db-user-passwords.yaml
