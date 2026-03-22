@@ -21,6 +21,8 @@ spec:
         - name: migrator
           image: REVIEW_SERVICE
           env:
+            - name: RUN_MODE
+              value: "migrate"
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:

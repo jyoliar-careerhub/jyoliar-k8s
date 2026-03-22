@@ -30,6 +30,8 @@ spec:
             - name: provider-grpc
               containerPort: 50053
           env:
+            - name: RUN_MODE
+              value: "app"
             - name: RESTAPI_GRPC_PORT
               value: "50051"
             - name: CRAWLER_GRPC_PORT
