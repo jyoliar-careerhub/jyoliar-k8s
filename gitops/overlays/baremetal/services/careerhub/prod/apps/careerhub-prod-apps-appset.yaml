@@ -15,12 +15,12 @@ spec:
           - name: careerhub-prod-review-grpc
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/review-grpc
             phase: "2"
-          # - name: careerhub-prod-posting-grpc
-          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/posting-grpc
-          #   phase: "2"
-          # - name: careerhub-prod-userinfo-grpc
-          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/userinfo-grpc
-          #   phase: "2"
+          - name: careerhub-prod-posting-grpc
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/posting-grpc
+            phase: "2"
+          - name: careerhub-prod-userinfo-grpc
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/userinfo-grpc
+            phase: "2"
           # - name: careerhub-prod-api-composer
           #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/api-composer
           #   phase: "2"

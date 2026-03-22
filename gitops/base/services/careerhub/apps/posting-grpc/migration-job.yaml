@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: posting-migration
+  labels:
+    app: posting-service
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: migrator
+          image: POSTING_SERVICE
+          env:
+            - name: RUN_MODE
+              value: "migrate"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-mongodb-posting-posting-app
+                  key: connectionString.standardSrv

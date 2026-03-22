@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: posting-service
+  labels:
+    app: posting-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: posting-service
+  template:
+    metadata:
+      labels:
+        app: posting-service
+    spec:
+      restartPolicy: Always
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: posting-service
+          image: POSTING_SERVICE
+          ports:
+            - name: provider-grpc
+              containerPort: 50051
+            - name: scanner-grpc
+              containerPort: 50052
+            - name: restapi-grpc
+              containerPort: 50053
+            - name: suggester-grpc
+              containerPort: 50054
+          env:
+            - name: RUN_MODE
+              value: "app"
+            - name: PROVIDER_GRPC_PORT
+              value: "50051"
+            - name: SCANNER_GRPC_PORT
+              value: "50052"
+            - name: RESTAPI_GRPC_PORT
+              value: "50053"
+            - name: SUGGESTER_GRPC_PORT
+              value: "50054"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-mongodb-posting-posting-app
+                  key: connectionString.standardSrv
