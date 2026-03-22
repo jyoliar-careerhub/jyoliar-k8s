@@ -38,6 +38,8 @@ spec:
               value: "50052"
             - name: PROVIDER_GRPC_PORT
               value: "50053"
+            - name: MONGO_AUTH_MECHANISM
+              value: "SCRAM-SHA-256"
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:

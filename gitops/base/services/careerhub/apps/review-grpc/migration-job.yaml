@@ -23,6 +23,8 @@ spec:
           env:
             - name: RUN_MODE
               value: "migrate"
+            - name: MONGO_AUTH_MECHANISM
+              value: "SCRAM-SHA-256"
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
