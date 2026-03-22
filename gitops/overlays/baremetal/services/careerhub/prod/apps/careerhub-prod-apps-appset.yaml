@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: careerhub-prod-apps
-  namespace: argocd
+  namespace: careerhub-prod
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
@@ -52,7 +52,7 @@ spec:
         namespace: careerhub-prod
       syncPolicy:
         automated:
-          prune: true
+          prune: false
           selfHeal: true
         syncOptions:
           - ServerSideApply=true
