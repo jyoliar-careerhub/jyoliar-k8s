@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: careerhub-prod-apps
-  namespace: careerhub-prod
+  namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
