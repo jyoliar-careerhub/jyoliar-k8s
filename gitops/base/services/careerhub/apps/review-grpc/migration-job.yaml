@@ -23,20 +23,8 @@ spec:
           env:
             - name: RUN_MODE
               value: "migrate"
-            - name: MONGO_AUTH_MECHANISM
-              value: "SCRAM-SHA-256"
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
                   name: careerhub-mongodb-review-review-app
                   key: connectionString.standardSrv
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: careerhub-mongodb-review-review-app
-                  key: username
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: careerhub-mongodb-review-review-app
-                  key: password
