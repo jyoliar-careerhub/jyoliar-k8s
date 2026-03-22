@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-composer
+  labels:
+    app: api-composer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-composer
+  template:
+    metadata:
+      labels:
+        app: api-composer
+    spec:
+      restartPolicy: Always
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: api-composer
+          image: API_COMPOSER
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: API_PORT
+              value: "8080"
+            - name: ROOT_PATH
+              value: "/api"
+            - name: POSTING_GRPC_ENDPOINT
+              value: "posting-restapi:80"
+            - name: USERINFO_GRPC_ENDPOINT
+              value: "userinfo-restapi:80"
+            - name: REVIEW_GRPC_ENDPOINT
+              value: "review-restapi:80"
+          envFrom:
+            - secretRef:
+                name: jwt-secretkey
