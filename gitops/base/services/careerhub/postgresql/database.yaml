@@ -1,0 +1,10 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: careerhub-auth-db
+spec:
+  name: auth
+  owner: auth-app
+  cluster:
+    name: careerhub-postgresql
+  databaseReclaimPolicy: retain

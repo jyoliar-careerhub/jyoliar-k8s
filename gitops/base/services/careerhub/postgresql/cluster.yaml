@@ -27,5 +27,13 @@ spec:
     enablePodAntiAffinity: true
     topologyKey: kubernetes.io/hostname
 
+  managed:
+    roles:
+      - name: auth-app
+        ensure: present
+        login: true
+        passwordSecret:
+          name: auth-app-pg-password
+
   monitoring:
     enablePodMonitor: true
