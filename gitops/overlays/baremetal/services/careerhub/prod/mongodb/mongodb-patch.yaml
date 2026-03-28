@@ -10,6 +10,20 @@ spec:
       template:
         spec:
           priorityClassName: database-prod
+          tolerations:
+            - key: node.longhorn.io/storage
+              operator: Exists
+              effect: PreferNoSchedule
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: node.longhorn.io/create-default-disk
+                        operator: In
+                        values:
+                          - "true"
       volumeClaimTemplates:
         - metadata:
             name: data-volume

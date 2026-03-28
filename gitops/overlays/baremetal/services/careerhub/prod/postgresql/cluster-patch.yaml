@@ -10,3 +10,17 @@ spec:
     size: 10Gi
   walStorage:
     size: 2Gi
+  affinity:
+    tolerations:
+      - key: node.longhorn.io/storage
+        operator: Exists
+        effect: PreferNoSchedule
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node.longhorn.io/create-default-disk
+                operator: In
+                values:
+                  - "true"

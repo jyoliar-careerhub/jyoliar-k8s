@@ -103,18 +103,14 @@ spec:
             scheduling.mongodb.com/cluster: careerhub
         spec:
           affinity:
-            nodeAffinity:
-              preferredDuringSchedulingIgnoredDuringExecution:
-                - weight: 100
-                  preference:
-                    matchExpressions:
-                      - key: node.longhorn.io/create-default-disk
-                        operator: In
-                        values:
-                          - "true"
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
-                    matchLabels:
-                      scheduling.mongodb.com/cluster: careerhub
+                    matchExpressions:
+                      - key: scheduling.mongodb.com/cluster
+                        operator: In
+                        values: ["careerhub"]
+                      - key: statefulset.kubernetes.io/pod-name
+                        operator: NotIn
+                        values: ["careerhub-mongodb-arb-0"]
                   topologyKey: kubernetes.io/hostname
