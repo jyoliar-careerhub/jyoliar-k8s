@@ -15,6 +15,7 @@ spec:
     storageClass: longhorn
 
   minSyncReplicas: 1
+  maxSyncReplicas: 1
 
   primaryUpdateMethod: switchover
 
