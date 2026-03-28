@@ -12,6 +12,7 @@
       "Bash(kubectl describe:*)",
       "Bash(kubectl wait:*)",
       "Bash(kubectl logs:*)",
+      "Bash(kubectl cnpg status:*)",
       "Bash(./platform/overlays/deploy.sh:*)",
       "Bash(./platform/overlays/create-aws-credentials.sh:*)",
       "Bash(./gitops/overlays/deploy.sh:*)",
