@@ -1,0 +1,8 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: database-prod
+value: 1000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Database workloads (prod)"

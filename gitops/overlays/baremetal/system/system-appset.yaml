@@ -9,15 +9,39 @@ spec:
   generators:
     - list:
         elements:
+          - name: prerequisites
+            path: gitops/overlays/baremetal/system/prerequisites
+            phase: "1"
           - name: nginx-gateway-config
             path: gitops/overlays/baremetal/system/nginx-gateway-config
+            phase: "2"
           - name: argocd-config
             path: gitops/overlays/baremetal/system/argocd-config
+            phase: "3"
           - name: prometheus-config
             path: gitops/overlays/baremetal/system/prometheus-config
+            phase: "3"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: system-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: system-phase
+              operator: In
+              values: ["2"]
+        - matchExpressions:
+            - key: system-phase
+              operator: In
+              values: ["3"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        system-phase: "{{ .phase }}"
     spec:
       project: system
       source:

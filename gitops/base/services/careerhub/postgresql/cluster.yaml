@@ -14,6 +14,8 @@ spec:
     size: OVERRIDE_REQUIRED
     storageClass: longhorn
 
+  priorityClassName: OVERRIDE_REQUIRED
+
   resources: OVERRIDE_REQUIRED
 
   affinity:

@@ -7,6 +7,9 @@ spec:
   arbiters: 1
   statefulSet:
     spec:
+      template:
+        spec:
+          priorityClassName: database-prod
       volumeClaimTemplates:
         - metadata:
             name: data-volume

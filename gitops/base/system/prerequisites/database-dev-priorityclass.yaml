@@ -1,0 +1,8 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: database-dev
+value: 500
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Database workloads (dev)"
