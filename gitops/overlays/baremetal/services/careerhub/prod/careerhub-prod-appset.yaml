@@ -12,6 +12,9 @@ spec:
           - name: careerhub-prod-mongodb
             path: gitops/overlays/baremetal/services/careerhub/prod/mongodb
             phase: "1"
+          - name: careerhub-prod-postgresql
+            path: gitops/overlays/baremetal/services/careerhub/prod/postgresql
+            phase: "1"
           - name: careerhub-prod-apps
             path: gitops/overlays/baremetal/services/careerhub/prod/apps
             phase: "2"

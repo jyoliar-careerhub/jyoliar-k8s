@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: careerhub-postgresql
+spec:
+  instances: 2
+  resources:
+  storage:
+    size: 10Gi
+  walStorage:
+    size: 2Gi

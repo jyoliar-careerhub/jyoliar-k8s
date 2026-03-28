@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: careerhub-postgresql-pooler
+spec:
+  cluster:
+    name: careerhub-postgresql
+  instances: OVERRIDE_REQUIRED
+  type: rw
+  pgbouncer:
+    poolMode: transaction

@@ -18,6 +18,9 @@ spec:
           - name: mongodb-operator
             path: gitops/overlays/baremetal/controllers/mongodb-operator
             namespace: mongodb
+          - name: cloudnativepg
+            path: gitops/overlays/baremetal/controllers/cloudnativepg
+            namespace: cnpg-system
   template:
     metadata:
       name: "{{ .name }}"

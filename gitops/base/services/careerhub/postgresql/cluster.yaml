@@ -1,0 +1,33 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: careerhub-postgresql
+spec:
+  instances: OVERRIDE_REQUIRED
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3
+
+  storage:
+    size: OVERRIDE_REQUIRED
+    storageClass: longhorn
+
+  walStorage:
+    size: OVERRIDE_REQUIRED
+    storageClass: longhorn
+
+  resources: OVERRIDE_REQUIRED
+
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node.longhorn.io/create-default-disk
+                operator: In
+                values:
+                  - "true"
+
+  monitoring:
+    enablePodMonitor: true
