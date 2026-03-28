@@ -32,6 +32,8 @@ spec:
       - name: auth-app
         ensure: present
         login: true
+        inherit: true
+        connectionLimit: -1
         passwordSecret:
           name: auth-app-pg-password
 
