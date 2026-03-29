@@ -13,19 +13,28 @@ spec:
     #         type: PathPrefix
     #         value: /
     #   backendRefs:
-    #     - name: frontend
+    #     - group: ''
+    #       kind: Service
+    #       name: frontend
     #       port: 80
+    #       weight: 1
     - matches:
         - path:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: api-composer
+        - group: ''
+          kind: Service
+          name: api-composer
           port: 80
+          weight: 1
     - matches:
         - path:
             type: PathPrefix
             value: /auth
       backendRefs:
-        - name: auth-service
+        - group: ''
+          kind: Service
+          name: auth-service
           port: 80
+          weight: 1
