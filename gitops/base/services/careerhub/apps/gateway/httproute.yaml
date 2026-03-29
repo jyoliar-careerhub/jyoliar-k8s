@@ -6,13 +6,13 @@ spec:
   parentRefs:
     - name: careerhub-nginx-gateway
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: frontend
-          port: 80
+    # - matches:
+    #     - path:
+    #         type: PathPrefix
+    #         value: /
+    #   backendRefs:
+    #     - name: frontend
+    #       port: 80
     - matches:
         - path:
             type: PathPrefix
