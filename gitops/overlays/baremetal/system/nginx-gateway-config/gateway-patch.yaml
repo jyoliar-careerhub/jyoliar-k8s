@@ -5,6 +5,8 @@ metadata:
   namespace: nginx-gateway
 spec:
   infrastructure:
+    labels:
+      implementation: kube-vip
     parametersRef:
       group: gateway.nginx.org
       kind: NginxProxy

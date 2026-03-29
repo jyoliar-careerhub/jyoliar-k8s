@@ -5,6 +5,8 @@ metadata:
 spec:
   gatewayClassName: nginx
   infrastructure:
+    labels:
+      implementation: kube-vip
     parametersRef:
       group: gateway.nginx.org
       kind: NginxProxy
