@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: auth-migration
+  labels:
+    app: auth-service
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: migrator
+          image: AUTH_SERVICE
+          env:
+            - name: RUN_MODE
+              value: "migrate"
+            - name: DB_HOST
+              value: "careerhub-postgresql-rw"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "auth"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: auth-app-pg-password
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth-app-pg-password
+                  key: password
