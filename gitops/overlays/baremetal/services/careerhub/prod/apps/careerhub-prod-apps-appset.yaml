@@ -9,6 +9,9 @@ spec:
   generators:
     - list:
         elements:
+          - name: careerhub-prod-gateway
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/gateway
+            phase: "1"
           - name: careerhub-prod-secrets
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/secrets
             phase: "1"
@@ -27,6 +30,9 @@ spec:
           - name: careerhub-prod-auth-service
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/auth-service
             phase: "2"
+          # - name: careerhub-prod-frontend
+          #   path: gitops/overlays/baremetal/services/careerhub/prod/apps/frontend
+          #   phase: "2"
   strategy:
     type: RollingSync
     rollingSync:
