@@ -26,6 +26,8 @@ spec:
             - name: http
               containerPort: 8080
           env:
+            - name: RUN_MODE
+              value: "app"
             - name: API_PORT
               value: "8080"
             - name: MAILER_GRPC_PORT
