@@ -4,6 +4,12 @@ kind: Kustomization
 resources:
   - ../../../../../../../base/services/careerhub/apps/auth-service
 
+patches:
+  - path: localhost-oauth-patch.yaml
+    target:
+      kind: Deployment
+      name: auth-service
+
 images:
   - name: AUTH_SERVICE
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
