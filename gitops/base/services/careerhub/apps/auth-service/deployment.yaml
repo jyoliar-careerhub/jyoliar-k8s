@@ -50,7 +50,7 @@ spec:
             - name: ACCESS_CONTROL_ALLOW_ORIGIN
               value: "careerhub.jyo-liar.com"
             - name: DB_HOST
-              value: "careerhub-postgresql-pooler-rw"
+              value: "careerhub-postgresql-pooler"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME

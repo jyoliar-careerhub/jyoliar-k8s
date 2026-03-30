@@ -24,7 +24,7 @@ spec:
             - name: RUN_MODE
               value: "migrate"
             - name: DB_HOST
-              value: "careerhub-postgresql-rw"
+              value: "careerhub-postgresql-pooler"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
