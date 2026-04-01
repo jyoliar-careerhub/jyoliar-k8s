@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-provider-wanted
+  labels:
+    app: posting-provider-wanted
+spec:
+  schedule: "09 19 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ecr-pull-secret
+          containers:
+            - name: posting-provider
+              image: POSTING_PROVIDER
+              args: ["-site=wanted"]
+              env:
+                - name: JOB_POSTING_GRPC_ENDPOINT
+                  value: "posting-provider:80"
+                - name: REVIEW_GRPC_ENDPOINT
+                  value: "review-provider:80"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-provider-jumpit
+  labels:
+    app: posting-provider-jumpit
+spec:
+  schedule: "09 19 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ecr-pull-secret
+          containers:
+            - name: posting-provider
+              image: POSTING_PROVIDER
+              args: ["-site=jumpit"]
+              env:
+                - name: JOB_POSTING_GRPC_ENDPOINT
+                  value: "posting-provider:80"
+                - name: REVIEW_GRPC_ENDPOINT
+                  value: "review-provider:80"

@@ -33,6 +33,9 @@ spec:
           - name: careerhub-prod-frontend
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/frontend
             phase: "2"
+          - name: careerhub-prod-jobs
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/jobs
+            phase: "3"
   strategy:
     type: RollingSync
     rollingSync:
@@ -45,6 +48,10 @@ spec:
             - key: apps-phase
               operator: In
               values: ["2"]
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["3"]
   template:
     metadata:
       name: "{{ .name }}"
