@@ -6,8 +6,8 @@ metadata:
     app: posting-provider-wanted
 spec:
   schedule: "09 19 * * *"
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -36,8 +36,8 @@ metadata:
     app: posting-provider-jumpit
 spec:
   schedule: "09 19 * * *"
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
