@@ -7,4 +7,7 @@ spec:
   data:
     - secretKey: api-token
       remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
         key: "/jyo-liar/k8s/baremetal/external-dns/cloudflare-api-token"
+        metadataPolicy: None

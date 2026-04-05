@@ -12,7 +12,12 @@ spec:
   refreshInterval: 1h
   target:
     name: cloudflare-api-token
+    creationPolicy: Owner
+    deletionPolicy: Retain
   data:
     - secretKey: api-token
       remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
         key: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_KEY"
+        metadataPolicy: None
