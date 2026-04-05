@@ -1,0 +1,13 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-api-token
+  namespace: cert-manager
+spec:
+  data:
+    - secretKey: api-token
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: "/jyo-liar/k8s/baremetal/external-dns/cloudflare-api-token"
+        metadataPolicy: None

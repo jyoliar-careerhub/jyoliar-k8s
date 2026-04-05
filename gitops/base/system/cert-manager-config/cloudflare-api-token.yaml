@@ -1,0 +1,21 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-api-token
+  namespace: cert-manager
+spec:
+  secretStoreRef:
+    name: aws-parameter-store
+    kind: ClusterSecretStore
+  refreshInterval: 1h
+  target:
+    name: cloudflare-api-token
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: api-token
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_KEY"
+        metadataPolicy: None

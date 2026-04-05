@@ -18,3 +18,13 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-jyoliar-tls
+      allowedRoutes:
+        namespaces:
+          from: All

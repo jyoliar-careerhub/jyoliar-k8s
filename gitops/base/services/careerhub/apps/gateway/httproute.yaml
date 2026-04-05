@@ -9,6 +9,7 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: careerhub-nginx-gateway
+      sectionName: https
   rules:
     - matches:
         - path:

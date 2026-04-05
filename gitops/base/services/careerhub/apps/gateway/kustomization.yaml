@@ -5,3 +5,5 @@ resources:
   - nginx-proxy.yaml
   - nginx-gateway.yaml
   - httproute.yaml
+  - http-redirect.yaml
+  - wildcard-certificate.yaml

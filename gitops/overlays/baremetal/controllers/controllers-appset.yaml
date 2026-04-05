@@ -24,6 +24,9 @@ spec:
           - name: external-dns
             path: gitops/overlays/baremetal/controllers/external-dns
             namespace: external-dns
+          - name: cert-manager
+            path: gitops/overlays/baremetal/controllers/cert-manager
+            namespace: cert-manager
   template:
     metadata:
       name: "{{ .name }}"

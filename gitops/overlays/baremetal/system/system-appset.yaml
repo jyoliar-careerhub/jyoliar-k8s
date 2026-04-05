@@ -21,6 +21,9 @@ spec:
           - name: prometheus-config
             path: gitops/overlays/baremetal/system/prometheus-config
             phase: "3"
+          - name: cert-manager-config
+            path: gitops/overlays/baremetal/system/cert-manager-config
+            phase: "2"
   strategy:
     type: RollingSync
     rollingSync:
