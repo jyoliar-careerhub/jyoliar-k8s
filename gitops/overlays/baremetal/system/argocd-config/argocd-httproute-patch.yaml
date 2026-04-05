@@ -5,4 +5,4 @@ metadata:
   namespace: argocd
 spec:
   hostnames:
-    - argocd.jyo-liar.com
+    - argocd.mg.jyo-liar.com

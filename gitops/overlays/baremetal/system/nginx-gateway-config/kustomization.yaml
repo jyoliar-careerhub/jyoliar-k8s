@@ -7,3 +7,4 @@ resources:
 
 patches:
   - path: gateway-patch.yaml
+  - path: wildcard-certificate-patch.yaml

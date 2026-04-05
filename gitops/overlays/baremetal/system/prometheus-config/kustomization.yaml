@@ -15,7 +15,7 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - alertmanager.jyo-liar.com
+      - alertmanager.mg.jyo-liar.com
 - target:
     kind: HTTPRoute
     name: grafana-httproute
@@ -23,7 +23,7 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - grafana.jyo-liar.com
+      - grafana.mg.jyo-liar.com
 - target:
     kind: HTTPRoute
     name: prometheus-httproute
@@ -31,4 +31,4 @@ patches:
     - op: replace
       path: /spec/hostnames
       value:
-      - prometheus.jyo-liar.com
+      - prometheus.mg.jyo-liar.com

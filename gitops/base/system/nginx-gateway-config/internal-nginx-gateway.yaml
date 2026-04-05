@@ -4,16 +4,3 @@ metadata:
   name: internal-nginx-gateway
 spec:
   gatewayClassName: nginx
-  listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
-      allowedRoutes:
-        namespaces:
-          from: All
-    - name: https
-      protocol: HTTP
-      port: 443
-      allowedRoutes:
-        namespaces:
-          from: All

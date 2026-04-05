@@ -23,7 +23,7 @@ spec:
           name: cloudflare
         domainFilters:
           - jyo-liar.com
-        policy: upsert-only
+        policy: sync
         registry: txt
         txtOwnerId: homelab-external-dns
         txtPrefix: _edns.

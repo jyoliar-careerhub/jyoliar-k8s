@@ -11,3 +11,22 @@ spec:
       group: gateway.nginx.org
       kind: NginxProxy
       name: internal-nginx-proxy
+  listeners:
+    - name: http
+      hostname: "*.mg.jyo-liar.com"
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      hostname: "*.mg.jyo-liar.com"
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-mg-tls
+      allowedRoutes:
+        namespaces:
+          from: All

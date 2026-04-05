@@ -4,3 +4,5 @@ namespace: nginx-gateway
 
 resources:
   - internal-nginx-gateway.yaml
+  - wildcard-certificate.yaml
+  - http-redirect.yaml

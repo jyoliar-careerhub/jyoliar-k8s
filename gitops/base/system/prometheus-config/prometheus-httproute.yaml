@@ -10,6 +10,7 @@ spec:
       kind: Gateway
       name: internal-nginx-gateway
       namespace: nginx-gateway
+      sectionName: https
   rules:
     - matches:
         - path:
