@@ -48,7 +48,7 @@ spec:
                   name: google-oauth
                   key: GOOGLE_REDIRECT_URL
             - name: ACCESS_CONTROL_ALLOW_ORIGIN
-              value: "careerhub.jyo-liar.com"
+              value: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_VALUE"
             - name: DB_HOST
               value: "careerhub-postgresql-pooler"
             - name: DB_PORT

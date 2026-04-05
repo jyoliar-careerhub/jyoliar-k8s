@@ -5,10 +5,7 @@ resources:
   - ../../../../../../../base/services/careerhub/apps/auth-service
 
 patches:
-  - path: localhost-oauth-patch.yaml
-    target:
-      kind: Deployment
-      name: auth-service
+  - path: domain-patch.yaml
 
 images:
   - name: AUTH_SERVICE
