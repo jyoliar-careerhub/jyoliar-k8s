@@ -86,3 +86,30 @@ spec:
               env:
                 - name: GRPC_ENDPOINT
                   value: "posting-scanner:80"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: review-crawler
+  labels:
+    app: review-crawler
+spec:
+  schedule: "39 19 * * *"
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ecr-pull-secret
+          containers:
+            - name: review-crawler
+              image: REVIEW_CRAWLER
+              env:
+                - name: REVIEW_GRPC_ENDPOINT
+                  value: "review-crawler:80"

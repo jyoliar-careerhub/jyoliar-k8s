@@ -11,3 +11,6 @@ images:
   - name: POSTING_SKILLSCANNER
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-posting-skillscanner
     newTag: v0.1.0
+  - name: REVIEW_CRAWLER
+    newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-review-crawler
+    newTag: v0.1.0
