@@ -21,6 +21,9 @@ spec:
           - name: cloudnativepg
             path: gitops/overlays/baremetal/controllers/cloudnativepg
             namespace: cnpg-system
+          - name: external-dns
+            path: gitops/overlays/baremetal/controllers/external-dns
+            namespace: external-dns
   template:
     metadata:
       name: "{{ .name }}"

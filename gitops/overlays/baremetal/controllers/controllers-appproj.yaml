@@ -11,6 +11,7 @@ spec:
     - git@github.com:jae2274/jyoliar-k8s.git
     - https://prometheus-community.github.io/helm-charts/
     - https://cloudnative-pg.github.io/charts
+    - https://kubernetes-sigs.github.io/external-dns/
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
