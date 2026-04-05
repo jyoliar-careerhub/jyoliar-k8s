@@ -59,3 +59,30 @@ spec:
                   value: "review-provider:80"
                 - name: ERROR_POLICY
                   value: "lenient"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-skillscanner
+  labels:
+    app: posting-skillscanner
+spec:
+  schedule: "39 19 * * *"
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ecr-pull-secret
+          containers:
+            - name: posting-skillscanner
+              image: POSTING_SKILLSCANNER
+              env:
+                - name: GRPC_ENDPOINT
+                  value: "posting-scanner:80"

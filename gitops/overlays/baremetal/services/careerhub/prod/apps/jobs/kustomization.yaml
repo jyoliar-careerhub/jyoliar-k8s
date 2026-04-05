@@ -8,3 +8,6 @@ images:
   - name: POSTING_PROVIDER
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-posting-provider
     newTag: v0.2.0
+  - name: POSTING_SKILLSCANNER
+    newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-posting-skillscanner
+    newTag: v0.1.0
