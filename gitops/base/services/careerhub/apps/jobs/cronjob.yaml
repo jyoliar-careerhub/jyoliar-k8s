@@ -57,3 +57,5 @@ spec:
                   value: "posting-provider:80"
                 - name: REVIEW_GRPC_ENDPOINT
                   value: "review-provider:80"
+                - name: ERROR_POLICY
+                  value: "lenient"
