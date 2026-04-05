@@ -26,7 +26,9 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: wildcard-mg-tls
+          - group: ""
+            kind: Secret
+            name: wildcard-mg-tls
       allowedRoutes:
         namespaces:
           from: All

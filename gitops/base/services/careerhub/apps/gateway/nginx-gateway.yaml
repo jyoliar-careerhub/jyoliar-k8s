@@ -24,7 +24,9 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: wildcard-jyoliar-tls
+          - group: ""
+            kind: Secret
+            name: wildcard-jyoliar-tls
       allowedRoutes:
         namespaces:
           from: All
