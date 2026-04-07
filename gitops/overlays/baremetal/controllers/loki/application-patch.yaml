@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki-helm
+  namespace: argocd
+spec:
+  source:
+    helm:
+      valuesObject:
+        singleBinary:
+          persistence:
+            storageClass: longhorn
+            size: 20Gi

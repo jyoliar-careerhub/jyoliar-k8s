@@ -46,6 +46,18 @@ spec:
           upgradeJob:
             enabled: true
             forceConflicts: true
+        grafana:
+          additionalDataSources:
+            - name: Loki - careerhub
+              type: loki
+              access: proxy
+              url: http://loki.prometheus.svc.cluster.local:3100
+              isDefault: false
+              jsonData:
+                maxLines: 1000
+                httpHeaderName1: X-Scope-OrgID
+              secureJsonData:
+                httpHeaderValue1: careerhub
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:

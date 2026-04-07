@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prometheus
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    chart: loki
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 6.55.0
+    helm:
+      releaseName: loki
+      valuesObject:
+        deploymentMode: SingleBinary
+        loki:
+          auth_enabled: true
+          commonConfig:
+            replication_factor: 1
+          schemaConfig:
+            configs:
+              - from: "2026-04-05"
+                store: tsdb
+                object_store: filesystem
+                schema: v13
+                index:
+                  prefix: index_
+                  period: 24h
+          storage:
+            type: filesystem
+          limits_config:
+            retention_period: 168h
+        singleBinary:
+          replicas: 1
+          persistence:
+            enabled: true
+            storageClass: longhorn
+            size: 20Gi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+        gateway:
+          enabled: false
+        backend:
+          replicas: 0
+        read:
+          replicas: 0
+        write:
+          replicas: 0
+        resultsCache:
+          enabled: false
+        chunksCache:
+          enabled: false
+        test:
+          enabled: false
+        lokiCanary:
+          enabled: false
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

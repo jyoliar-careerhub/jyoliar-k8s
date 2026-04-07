@@ -1,0 +1,143 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prometheus
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    chart: alloy
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 1.7.0
+    helm:
+      releaseName: alloy
+      valuesObject:
+        alloy:
+          configMap:
+            create: true
+            content: |
+              // Pod discovery — current node only
+              discovery.kubernetes "pod" {
+                role = "pod"
+                selectors {
+                  role  = "pod"
+                  field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+                }
+              }
+
+              // Relabel — keep *-(prod|dev|staging|test) namespaces only, extract tenant ID and env
+              discovery.relabel "pod_logs" {
+                targets = discovery.kubernetes.pod.targets
+
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  regex         = ".+-(prod|dev|staging|test)$"
+                  action        = "keep"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  regex         = "(.+)-(prod|dev|staging|test)$"
+                  replacement   = "$1"
+                  target_label  = "__tenant_id__"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  regex         = ".+-(prod|dev|staging|test)$"
+                  replacement   = "$1"
+                  target_label  = "env"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_label_app"]
+                  target_label  = "app"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+                  separator     = "/"
+                  replacement   = "/var/log/pods/*$1/*.log"
+                  target_label  = "__path__"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_id"]
+                  regex         = "^(\\S+):\\/\\/.+$"
+                  replacement   = "$1"
+                  target_label  = "container_runtime"
+                }
+              }
+
+              // Tail logs from discovered pods
+              loki.source.kubernetes "pod_logs" {
+                targets    = discovery.relabel.pod_logs.output
+                forward_to = [loki.process.pod_logs.receiver]
+              }
+
+              // Process — CRI parsing + level label extraction + dynamic tenant routing
+              loki.process "pod_logs" {
+                stage.cri {}
+
+                // Extract log level from JSON logs (INFO, WARN, ERROR)
+                // Non-JSON logs (e.g. frontend) will simply not have the level label
+                stage.json {
+                  expressions = {
+                    level = "level",
+                  }
+                }
+
+                stage.labels {
+                  values = {
+                    level = "",
+                  }
+                }
+
+                stage.tenant {
+                  label = "__tenant_id__"
+                }
+
+                forward_to = [loki.write.loki.receiver]
+              }
+
+              // Write to Loki
+              loki.write "loki" {
+                endpoint {
+                  url = "http://loki.prometheus.svc.cluster.local:3100/loki/api/v1/push"
+                }
+              }
+          mounts:
+            varlog: true
+          clustering:
+            enabled: false
+        controller:
+          type: daemonset
+        serviceAccount:
+          create: true
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

@@ -27,6 +27,12 @@ spec:
           - name: cert-manager
             path: gitops/overlays/baremetal/controllers/cert-manager
             namespace: cert-manager
+          - name: loki
+            path: gitops/overlays/baremetal/controllers/loki
+            namespace: prometheus
+          - name: alloy
+            path: gitops/overlays/baremetal/controllers/alloy
+            namespace: prometheus
   template:
     metadata:
       name: "{{ .name }}"
