@@ -13,6 +13,7 @@ spec:
     - https://cloudnative-pg.github.io/charts
     - https://kubernetes-sigs.github.io/external-dns/
     - https://charts.jetstack.io
+    - https://grafana.github.io/helm-charts
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
