@@ -44,7 +44,7 @@ spec:
                   source_labels = ["__meta_kubernetes_namespace"]
                   regex         = "(.+)-(prod|dev|staging|test)$"
                   replacement   = "$1"
-                  target_label  = "__tenant_id__"
+                  target_label  = "tenant_id"
                 }
 
                 rule {
@@ -114,7 +114,11 @@ spec:
                 }
 
                 stage.tenant {
-                  label = "__tenant_id__"
+                  label = "tenant_id"
+                }
+
+                stage.label_drop {
+                  values = ["tenant_id", "container_runtime"]
                 }
 
                 forward_to = [loki.write.loki.receiver]
