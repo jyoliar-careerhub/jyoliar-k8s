@@ -12,31 +12,61 @@ spec:
           - name: nginx-gateway
             path: gitops/overlays/baremetal/controllers/nginx-gateway
             namespace: nginx-gateway
+            phase: default
           - name: prometheus-operator
             path: gitops/overlays/baremetal/controllers/prometheus-operator
             namespace: prometheus
+            phase: default
           - name: mongodb-operator
             path: gitops/overlays/baremetal/controllers/mongodb-operator
             namespace: mongodb
+            phase: default
           - name: cloudnativepg
             path: gitops/overlays/baremetal/controllers/cloudnativepg
             namespace: cnpg-system
+            phase: default
           - name: external-dns
             path: gitops/overlays/baremetal/controllers/external-dns
             namespace: external-dns
+            phase: default
           - name: cert-manager
             path: gitops/overlays/baremetal/controllers/cert-manager
             namespace: cert-manager
+            phase: default
           - name: loki
             path: gitops/overlays/baremetal/controllers/loki
             namespace: prometheus
+            phase: default
           - name: alloy
             path: gitops/overlays/baremetal/controllers/alloy
             namespace: prometheus
+            phase: default
+          - name: kagent-crds
+            path: gitops/overlays/baremetal/controllers/kagent-crds
+            namespace: kagent
+            phase: crds
+          - name: kagent
+            path: gitops/overlays/baremetal/controllers/kagent
+            namespace: kagent
+            phase: app
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: controllers-phase
+              operator: In
+              values: ["default", "crds"]
+        - matchExpressions:
+            - key: controllers-phase
+              operator: In
+              values: ["app"]
   template:
     metadata:
       name: "{{ .name }}"
       namespace: "{{ .namespace }}"
+      labels:
+        controllers-phase: "{{ .phase }}"
     spec:
       project: controllers
       source:

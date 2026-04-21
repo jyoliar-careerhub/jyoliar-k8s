@@ -1,0 +1,16 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: hello-readonly
+  namespace: kagent
+spec:
+  type: Declarative
+  description: "Phase 1 배포 검증용 Hello-World 에이전트. tool 0개로 최소 구성."
+  declarative:
+    modelConfig: default-model-config
+    systemMessage: |
+      당신은 Phase 1 배포 검증용 Hello-World 에이전트입니다.
+      사용 가능한 도구는 아직 없습니다. 질문에는 간결한 자연어로만 응답하세요.
+      운영 명령(create/update/delete/patch/apply 등)은 수행하지 않으며,
+      요청이 있어도 거절 사유를 간단히 설명합니다.
+    tools: []
