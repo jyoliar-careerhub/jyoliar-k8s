@@ -69,11 +69,15 @@ spec:
             enabled: false
 
         # ──────────────────────────────────────────────
-        # 내장 MCP 툴 / 서브차트 전부 OFF (POC 정책)
-        # Phase 2 왕복 검증 시 `kagent-tools.enabled: true`로 전환 예정
+        # 내장 MCP 툴 / 서브차트
+        # Phase 2: kagent-tools만 활성화 (hello-readonly 왕복 검증).
+        # 보안: rbac.readOnly=true로 cluster-admin 기본값을 읽기 전용
+        # ClusterRole(get/list/watch)로 제한.
         # ──────────────────────────────────────────────
         kagent-tools:
-          enabled: false
+          enabled: true
+          rbac:
+            readOnly: true
         kmcp:
           enabled: false
         tools:
