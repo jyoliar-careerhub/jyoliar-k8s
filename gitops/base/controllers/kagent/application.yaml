@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kagent
+  name: kagent-helm
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
