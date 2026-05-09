@@ -1,0 +1,123 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kagent
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kagent
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    chart: kagent
+    repoURL: ghcr.io/kagent-dev/kagent/helm
+    targetRevision: 0.9.0-beta5
+    helm:
+      releaseName: kagent
+      valuesObject:
+        # ──────────────────────────────────────────────
+        # 글로벌 이미지 태그 (chart appVersion 대신 명시)
+        # ──────────────────────────────────────────────
+        tag: "0.9.0-beta5"
+
+        # ──────────────────────────────────────────────
+        # Bundled PostgreSQL (홈랩: longhorn StorageClass)
+        # 추후 CloudNativePG로 전환 예정 (별도 티켓)
+        # ──────────────────────────────────────────────
+        database:
+          postgres:
+            bundled:
+              enabled: true
+              storageClassName: longhorn
+
+        # ──────────────────────────────────────────────
+        # LLM 공급자 — Secret 이름/키는 chart 기본값 사용
+        #   Secret 리소스명: kagent-openai
+        #   데이터 키:       OPENAI_API_KEY
+        # ExternalSecret (system/kagent-config)에서 동일한 이름·키로 주입
+        # ──────────────────────────────────────────────
+        providers:
+          default: openAI
+          openAI:
+            model: "gpt-4o-mini"
+
+        # ──────────────────────────────────────────────
+        # 프리빌트 에이전트 전부 OFF (POC 정책)
+        # ──────────────────────────────────────────────
+        agents:
+          k8s-agent:
+            enabled: false
+          kgateway-agent:
+            enabled: false
+          istio-agent:
+            enabled: false
+          promql-agent:
+            enabled: false
+          observability-agent:
+            enabled: false
+          argo-rollouts-agent:
+            enabled: false
+          helm-agent:
+            enabled: false
+          cilium-policy-agent:
+            enabled: false
+          cilium-manager-agent:
+            enabled: false
+          cilium-debug-agent:
+            enabled: false
+
+        # ──────────────────────────────────────────────
+        # 내장 MCP 툴 / 서브차트 전부 OFF (POC 정책)
+        # Phase 2 왕복 검증 시 `kagent-tools.enabled: true`로 전환 예정
+        # ──────────────────────────────────────────────
+        kagent-tools:
+          enabled: false
+        kmcp:
+          enabled: false
+        tools:
+          grafana-mcp:
+            enabled: false
+          querydoc:
+            enabled: false
+
+        # ──────────────────────────────────────────────
+        # OpenTelemetry 비활성 (홈랩 트레이싱 파이프라인 미구축)
+        # ──────────────────────────────────────────────
+        otel:
+          tracing:
+            enabled: false
+          logging:
+            enabled: false
+
+        # ──────────────────────────────────────────────
+        # 컴포넌트 리소스 (RPi5 arm64 기준 보수적 설정)
+        # ──────────────────────────────────────────────
+        controller:
+          replicas: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+        ui:
+          # arm64 SIGILL(#1505) 재현 시 replicas: 0 으로 즉시 비활성화
+          replicas: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
