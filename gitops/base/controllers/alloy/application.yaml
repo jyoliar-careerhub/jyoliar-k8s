@@ -130,8 +130,91 @@ spec:
                   url = "http://loki.prometheus.svc.cluster.local:3100/loki/api/v1/push"
                 }
               }
+
+              // ===========================================================
+              // Traces pipeline — OTLP receive → Tempo forward (multi-tenant)
+              // ===========================================================
+              // X-Scope-OrgID 결정 책임은 송신 앱(α 패턴). Alloy는 inbound
+              // metadata에서 헤더를 꺼내 outbound 그대로 통과만 시킨다.
+              // (OTel은 attribute↔metadata 자동 변환 미지원 — Loki의
+              //  stage.tenant와 같은 인프라 자동 분기 불가, 송신측 책임)
+
+              // OTLP 수신 (gRPC 4317 + HTTP 4318)
+              // include_metadata=true: inbound 헤더/grpc metadata를 파이프라인 컨텍스트로 보존
+              otelcol.receiver.otlp "default" {
+                grpc {
+                  endpoint         = "0.0.0.0:4317"
+                  include_metadata = true
+                }
+                http {
+                  endpoint         = "0.0.0.0:4318"
+                  include_metadata = true
+                }
+                output {
+                  traces = [otelcol.processor.k8sattributes.default.input]
+                }
+              }
+
+              // k8s 메타데이터 자동 부착 (디버깅 가치, 격리와는 무관)
+              otelcol.processor.k8sattributes "default" {
+                extract {
+                  metadata = [
+                    "k8s.namespace.name",
+                    "k8s.pod.name",
+                    "k8s.deployment.name",
+                    "k8s.container.name",
+                  ]
+                }
+                pod_association {
+                  source {
+                    from = "resource_attribute"
+                    name = "k8s.pod.ip"
+                  }
+                }
+                pod_association {
+                  source {
+                    from = "connection"
+                  }
+                }
+                output {
+                  traces = [otelcol.processor.batch.traces.input]
+                }
+              }
+
+              // batch — metadata_keys로 X-Scope-OrgID 메타데이터를 batch 경계에서도 보존
+              otelcol.processor.batch "traces" {
+                metadata_keys = ["x-scope-orgid"]
+                output {
+                  traces = [otelcol.exporter.otlphttp.tempo.input]
+                }
+              }
+
+              // inbound X-Scope-OrgID metadata → outbound HTTP 헤더로 동적 주입
+              otelcol.auth.headers "tenant" {
+                header {
+                  key          = "X-Scope-OrgID"
+                  from_context = "x-scope-orgid"
+                }
+              }
+
+              // Tempo로 export
+              otelcol.exporter.otlphttp "tempo" {
+                client {
+                  endpoint = "http://tempo.prometheus.svc.cluster.local:4318"
+                  auth     = otelcol.auth.headers.tenant.handler
+                }
+              }
           mounts:
             varlog: true
+          extraPorts:
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              port: 4318
+              targetPort: 4318
+              protocol: TCP
           clustering:
             enabled: false
         controller:
