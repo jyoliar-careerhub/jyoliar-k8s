@@ -41,6 +41,10 @@ spec:
             path: gitops/overlays/baremetal/controllers/alloy
             namespace: prometheus
             phase: default
+          - name: tempo
+            path: gitops/overlays/baremetal/controllers/tempo
+            namespace: prometheus
+            phase: default
           - name: kagent-crds
             path: gitops/overlays/baremetal/controllers/kagent-crds
             namespace: kagent

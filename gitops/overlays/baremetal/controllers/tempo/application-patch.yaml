@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tempo-helm
+  namespace: argocd
+spec:
+  source:
+    helm:
+      valuesObject:
+        persistence:
+          storageClassName: longhorn
+          size: 20Gi

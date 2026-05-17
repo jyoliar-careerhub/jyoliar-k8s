@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tempo-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prometheus
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    chart: tempo
+    repoURL: https://grafana-community.github.io/helm-charts
+    targetRevision: 2.1.2
+    helm:
+      releaseName: tempo
+      valuesObject:
+        tempo:
+          multitenancyEnabled: true
+          retention: 72h
+          storage:
+            trace:
+              backend: local
+              local:
+                path: /var/tempo/traces
+              wal:
+                path: /var/tempo/wal
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+                http:
+                  endpoint: 0.0.0.0:4318
+          metricsGenerator:
+            enabled: false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+        persistence:
+          enabled: true
+          storageClassName: longhorn
+          size: 20Gi
+          accessModes:
+            - ReadWriteOnce
+        serviceMonitor:
+          enabled: false
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
