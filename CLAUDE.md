@@ -129,6 +129,31 @@ patches:
   - path: my-patch.yaml
 ```
 
+## ArgoCD AppProject sourceRepos 허용 확인 (필수)
+
+ArgoCD Application의 `spec.source.repoURL`로 **외부 Helm chart 저장소나 신규 Git 저장소를 추가/변경할 때**, 해당 Application이 속한 AppProject의 `spec.sourceRepos` 목록에 그 URL이 허용되어 있는지 **반드시 사전 확인**합니다.
+
+허용되지 않으면 ArgoCD sync 시 다음과 같은 에러로 실패합니다:
+
+```
+application repo <URL> is not permitted in project '<project-name>'
+```
+
+### 작업 절차
+
+1. 새 `repoURL` 추가/변경 전, 해당 AppProject 정의를 확인:
+   ```bash
+   # 예: controllers AppProject
+   cat gitops/overlays/baremetal/controllers/controllers-appproj.yaml
+   ```
+2. `spec.sourceRepos`에 새 URL이 없으면 **AppProject 매니페스트에 URL 추가를 같은 PR/커밋에 포함**합니다. (별도 커밋으로 미루면 첫 sync에서 반드시 실패함)
+3. Helm chart의 경우 `chart:` 필드와 무관하게 `repoURL` 단위로 허용되므로, 동일 레포의 다른 차트는 이미 허용돼 있을 수 있음 — 그래도 URL이 정확히 일치하는지 확인.
+
+### 자주 놓치는 패턴
+
+- 같은 차트의 **레포 이전** (예: `https://grafana.github.io/helm-charts` → `https://grafana-community.github.io/helm-charts`)도 새 URL이므로 신규 등록 필요
+- OCI 레지스트리(`oci://...`)와 HTTPS 레포는 별개 항목으로 등록
+
 ## 클러스터 접근
 
 특정 환경의 클러스터에 접근할 때:
