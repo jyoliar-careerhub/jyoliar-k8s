@@ -49,6 +49,7 @@ spec:
         grafana:
           additionalDataSources:
             - name: Loki - careerhub
+              uid: loki-careerhub
               type: loki
               access: proxy
               url: http://loki.prometheus.svc.cluster.local:3100
@@ -56,6 +57,40 @@ spec:
               jsonData:
                 maxLines: 1000
                 httpHeaderName1: X-Scope-OrgID
+                # 로그의 trace_id=<hex> 패턴을 발견하면 Tempo 트레이스 뷰로 점프 (Phase 3-2)
+                derivedFields:
+                  - name: TraceID
+                    datasourceUid: tempo-careerhub
+                    matcherRegex: 'trace_id=(\w+)'
+                    url: '$${__value.raw}'
+              secureJsonData:
+                httpHeaderValue1: careerhub
+            # Phase 3-1: Tempo - careerhub datasource
+            # 헤더 X-Scope-OrgID=careerhub 강제, multitenancy 격리. α 패턴 송신 헤더와 동일 텐넌트.
+            - name: Tempo - careerhub
+              uid: tempo-careerhub
+              type: tempo
+              access: proxy
+              url: http://tempo.prometheus.svc.cluster.local:3200
+              isDefault: false
+              jsonData:
+                httpHeaderName1: X-Scope-OrgID
+                # 트레이스 뷰에서 해당 trace_id로 Loki 로그를 동시 조회
+                tracesToLogsV2:
+                  datasourceUid: loki-careerhub
+                  spanStartTimeShift: '-1m'
+                  spanEndTimeShift: '1m'
+                  filterByTraceID: true
+                  tags:
+                    - key: service.name
+                      value: app
+                # Service Graph는 Tempo metrics_generator 메트릭(traces_service_graph_*)을
+                # Prometheus에서 조회. metrics_generator는 Phase 1에서 미활성 — 패널은 비어
+                # 표시되며, 향후 활성화 시 자동 동작.
+                serviceMap:
+                  datasourceUid: prometheus
+                nodeGraph:
+                  enabled: true
               secureJsonData:
                 httpHeaderValue1: careerhub
         alertmanager:
