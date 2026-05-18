@@ -1,0 +1,13 @@
+apiVersion: gateway.nginx.org/v1alpha2
+kind: ObservabilityPolicy
+metadata:
+  name: careerhub-trace
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: careerhub-httproute
+  tracing:
+    strategy: ratio
+    ratio: 100
+    context: propagate

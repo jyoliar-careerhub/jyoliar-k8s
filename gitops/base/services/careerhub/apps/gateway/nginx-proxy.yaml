@@ -7,3 +7,7 @@ spec:
     service:
       type: LoadBalancer
       externalTrafficPolicy: Cluster
+  telemetry:
+    exporter:
+      endpoint: alloy.prometheus.svc.cluster.local:4317
+    serviceName: careerhub-gateway
