@@ -132,23 +132,23 @@ spec:
               }
 
               // ===========================================================
-              // Traces pipeline — OTLP receive → Tempo forward (multi-tenant)
+              // Traces pipeline — OTLP receive → Tempo forward
+              // per-tenant Collector + 단일 텐넌트 하드코딩 패턴
               // ===========================================================
-              // X-Scope-OrgID 결정 책임은 송신 앱(α 패턴). Alloy는 inbound
-              // metadata에서 헤더를 꺼내 outbound 그대로 통과만 시킨다.
-              // (OTel은 attribute↔metadata 자동 변환 미지원 — Loki의
-              //  stage.tenant와 같은 인프라 자동 분기 불가, 송신측 책임)
+              // 본 Alloy 인스턴스는 careerhub 텐넌트 전용. X-Scope-OrgID는
+              // outbound exporter에서 상수 하드코딩으로 박는다. 송신자는
+              // 텐넌트 헤더 무지(NGF/careerhub 백엔드/telemetrygen 등).
+              // 동적 매핑(namespace→tenant 등) 일체 미사용.
+              // 신규 텐넌트 합류 시 노드 그룹 분리 + per-node-group Alloy로
+              // 별도 인스턴스 배포 예정.
 
               // OTLP 수신 (gRPC 4317 + HTTP 4318)
-              // include_metadata=true: inbound 헤더/grpc metadata를 파이프라인 컨텍스트로 보존
               otelcol.receiver.otlp "default" {
                 grpc {
-                  endpoint         = "0.0.0.0:4317"
-                  include_metadata = true
+                  endpoint = "0.0.0.0:4317"
                 }
                 http {
-                  endpoint         = "0.0.0.0:4318"
-                  include_metadata = true
+                  endpoint = "0.0.0.0:4318"
                 }
                 output {
                   traces = [otelcol.processor.k8sattributes.default.input]
@@ -181,19 +181,17 @@ spec:
                 }
               }
 
-              // batch — metadata_keys로 X-Scope-OrgID 메타데이터를 batch 경계에서도 보존
               otelcol.processor.batch "traces" {
-                metadata_keys = ["x-scope-orgid"]
                 output {
                   traces = [otelcol.exporter.otlphttp.tempo.input]
                 }
               }
 
-              // inbound X-Scope-OrgID metadata → outbound HTTP 헤더로 동적 주입
+              // outbound 헤더에 텐넌트 ID를 상수 하드코딩
               otelcol.auth.headers "tenant" {
                 header {
-                  key          = "X-Scope-OrgID"
-                  from_context = "x-scope-orgid"
+                  key   = "X-Scope-OrgID"
+                  value = "careerhub"
                 }
               }
 
