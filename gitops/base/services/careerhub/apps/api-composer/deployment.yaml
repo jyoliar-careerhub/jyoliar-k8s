@@ -36,6 +36,22 @@ spec:
               value: "userinfo-restapi:80"
             - name: REVIEW_GRPC_ENDPOINT
               value: "review-restapi:80"
+            # OTel 트레이싱 (Phase 4-B) — Alloy(careerhub 텐넌트 전용)로 OTLP gRPC 송신.
+            # X-Scope-OrgID 헤더는 Alloy가 상수 하드코딩으로 박으므로 본 컨테이너는 헤더 무지.
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://alloy.prometheus.svc.cluster.local:4317"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "grpc"
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "deployment.environment=$(POD_NAMESPACE)"
           envFrom:
             - secretRef:
                 name: jwt-secretkey
