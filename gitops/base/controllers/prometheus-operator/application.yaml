@@ -57,11 +57,14 @@ spec:
               jsonData:
                 maxLines: 1000
                 httpHeaderName1: X-Scope-OrgID
-                # 로그의 trace_id=<hex> 패턴을 발견하면 Tempo 트레이스 뷰로 점프 (Phase 3-2)
+                # 로그의 "trace_id":"<id>" JSON 필드를 발견하면 Tempo 트레이스 뷰로 점프 (Phase 3-2)
+                # careerhub 백엔드는 goutils/llog가 JSON 출력 (datas.trace_id 필드).
+                # 전환기 동안 goutils UUID(36자, hyphen 포함)와 OTel TraceID(32 hex) 양쪽을 cover하기 위해
+                # broad regex `([^"]+)` 사용. (Phase 4-B 사전 조사 §5.2 참조)
                 derivedFields:
                   - name: TraceID
                     datasourceUid: tempo-careerhub
-                    matcherRegex: 'trace_id=(\w+)'
+                    matcherRegex: '"trace_id":"([^"]+)"'
                     url: '$${__value.raw}'
               secureJsonData:
                 httpHeaderValue1: careerhub
