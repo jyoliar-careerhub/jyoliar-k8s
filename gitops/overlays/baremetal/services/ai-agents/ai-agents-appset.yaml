@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ai-agents
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          # 공유 secret(ECR pull 등) — 모든 agent가 참조하므로 별도 app으로 분리, phase 1로 먼저 동기화한다.
+          - name: ai-agents-secrets
+            path: gitops/overlays/baremetal/services/ai-agents/secrets
+            namespace: ai-agents
+            phase: "1"
+          # agent별 overlay — base 참조 + ECR 이미지 주입. phase 2(secrets 이후). 세부 역할 agent는 여기에 element를 추가한다.
+          - name: careerhub-incident-agent
+            path: gitops/overlays/baremetal/services/ai-agents/careerhub-incident-agent
+            namespace: ai-agents
+            phase: "2"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: ai-agents-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: ai-agents-phase
+              operator: In
+              values: ["2"]
+  template:
+    metadata:
+      name: "{{ .name }}"
+      labels:
+        ai-agents-phase: "{{ .phase }}"
+    spec:
+      project: ai-agents
+      source:
+        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

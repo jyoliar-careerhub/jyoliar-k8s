@@ -15,6 +15,9 @@ spec:
           - name: careerhub-prod
             path: gitops/overlays/baremetal/services/careerhub/prod
             namespace: careerhub-prod
+          - name: ai-agents
+            path: gitops/overlays/baremetal/services/ai-agents
+            namespace: ai-agents
   template:
     metadata:
       name: "{{ .name }}"

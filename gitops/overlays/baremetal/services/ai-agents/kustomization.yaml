@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# ai-agents 등록 레이어(careerhub-prod 패턴 미러).
+# 상위 services ApplicationSet이 이 경로를 렌더링하여 argocd 네임스페이스에
+# AppProject + ApplicationSet만 배포한다.
+# 실제 워크로드(ns/sa/rbac/externalsecret/ecr/job)는 아래 ApplicationSet이 가리키는
+# gitops/base/services/ai-agents 에서 ai-agents 네임스페이스로 배포된다.
+resources:
+  - ai-agents-appproj.yaml
+  - ai-agents-appset.yaml

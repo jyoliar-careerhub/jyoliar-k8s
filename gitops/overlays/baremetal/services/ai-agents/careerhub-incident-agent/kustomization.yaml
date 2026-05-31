@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# careerhub-incident-agent: ai-agents 묶음의 첫 agent(PoC — 역할 분리 없이 전 역할 수행).
+# careerhub apps(api-composer 등) 패턴과 동일하게, base 워크로드를 참조하고
+# ECR 이미지(placeholder INCIDENT_AGENT)를 여기서 주입한다. 재빌드 시 newTag만 갱신한다.
+# 향후 세부 역할별 agent는 ai-agents/ 하위에 같은 형태의 overlay로 추가한다.
+resources:
+  - ../../../../../base/services/ai-agents/careerhub-incident-agent
+
+images:
+  - name: INCIDENT_AGENT
+    newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-incident-agent
+    newTag: v0.0.1
