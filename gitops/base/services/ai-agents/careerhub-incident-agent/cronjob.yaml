@@ -1,0 +1,51 @@
+# incident-agent 실행 정의 — CronJob(suspend)로 두어 자동 실행을 막는다.
+#  - suspend: true        → 스케줄에 의한 자동 실행 안 함(ArgoCD가 관리하는 상시 리소스).
+#  - schedule             → 형식상 필수라 더미값(2월 31일, 절대 트리거되지 않음).
+# 검증이 필요할 때만 이 CronJob에서 일회성 Job을 띄워 실행한다:
+#   kubectl create job incident-agent-manual-$(date +%s) \
+#     --from=cronjob/incident-agent -n ai-agents --kubeconfig <abs>
+# 이미지는 placeholder(INCIDENT_AGENT)로 두고 agent overlay의 images로 ECR URL/태그를 주입한다.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: incident-agent
+  namespace: ai-agents
+spec:
+  suspend: true
+  schedule: "0 0 31 2 *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 600
+      template:
+        spec:
+          serviceAccountName: incident-agent
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ecr-pull-secret
+          containers:
+            - name: agent
+              image: INCIDENT_AGENT
+              command: ["python", "agent.py"]
+              env:
+                - name: TARGET_NS
+                  value: careerhub-prod
+                - name: PROM_URL
+                  value: http://monitoring-kube-prometheus-prometheus.prometheus.svc:9090
+                - name: INCIDENT_SUMMARY
+                  value: "TestIncidentFire: api-composer 5xx 급증"
+                - name: OPENAI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: incident-agent-secret
+                      key: openai-api-key
+                - name: DISCORD_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: incident-agent-secret
+                      key: discord-webhook-url

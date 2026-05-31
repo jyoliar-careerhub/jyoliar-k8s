@@ -1,10 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# 완전 GitOps: 상시 인프라 + G0 검증 Job(Sync hook)을 모두 포함한다.
-# job.yaml은 ArgoCD Sync hook이라 일반 리소스 drift/prune 루프에 걸리지 않고 sync마다 1회 실행된다.
+# incident-agent 워크로드: 상시 인프라(SA/RBAC/ExternalSecret) + 실행 정의(CronJob, suspend).
+# CronJob은 suspend라 자동 실행되지 않고, 검증 시 수동으로 Job을 띄워 실행한다(cronjob.yaml 주석 참조).
 resources:
   - serviceaccount.yaml
   - clusterrole.yaml
   - clusterrolebinding.yaml
   - externalsecret.yaml
-  - job.yaml
+  - cronjob.yaml
