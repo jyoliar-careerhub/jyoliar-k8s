@@ -47,5 +47,7 @@ spec:
                 - name: DISCORD_WEBHOOK_URL
                   valueFrom:
                     secretKeyRef:
-                      name: incident-agent-secret
+                      # ai-agents 공유 secret 레이어(secrets/ai-agent-discord-webhook.yaml).
+                      # AI agent 전용 Discord 채널의 단일 slack_url(/slack 엔드포인트).
+                      name: ai-agent-discord-webhook
                       key: discord-webhook-url
