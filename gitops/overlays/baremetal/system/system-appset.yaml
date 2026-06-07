@@ -21,6 +21,11 @@ spec:
           - name: prometheus-config
             path: gitops/overlays/baremetal/system/prometheus-config
             phase: "3"
+          # grafana-config: grafana-operator가 관리하는 CR(Grafana external + Viewer SA).
+          # operator(controllers)는 이미 설치돼 있으므로 phase 3에서 동기화.
+          - name: grafana-config
+            path: gitops/overlays/baremetal/system/grafana-config
+            phase: "3"
           - name: cert-manager-config
             path: gitops/overlays/baremetal/system/cert-manager-config
             phase: "2"

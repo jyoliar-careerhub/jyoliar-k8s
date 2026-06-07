@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# grafana-config: grafana-operator가 관리하는 CR(system 레이어).
+#  - Grafana(external): 기존 kube-prometheus-stack Grafana 연결
+#  - GrafanaServiceAccount(Viewer): mcp-grafana용 read-only 토큰 발급
+# operator 설치는 controllers/grafana-operator. (controllers=설치, system=관리 CR)
+namespace: prometheus
+
+resources:
+  - grafana.yaml
+  - grafanaserviceaccount.yaml

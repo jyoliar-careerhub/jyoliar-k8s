@@ -1,0 +1,20 @@
+# 기존 kube-prometheus-stack Grafana를 grafana-operator가 "external"로 인식하게 하는 CR.
+# operator는 이 admin 자격으로 Grafana API를 호출해 GrafanaServiceAccount/토큰을 발급한다.
+# admin Secret(monitoring-grafana)은 same-ns(prometheus)만 참조 가능(operator 제약).
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: monitoring-external
+  namespace: prometheus
+  labels:
+    # GrafanaServiceAccount는 instanceName으로 직접 참조하지만, 라벨은 관례상 부여.
+    dashboards: "grafana-mcp"
+spec:
+  external:
+    url: http://monitoring-grafana.prometheus.svc
+    adminUser:
+      name: monitoring-grafana
+      key: admin-user
+    adminPassword:
+      name: monitoring-grafana
+      key: admin-password
