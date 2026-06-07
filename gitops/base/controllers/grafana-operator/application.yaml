@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-operator-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: grafana-operator
+    server: https://kubernetes.default.svc
+  project: controllers
+  source:
+    # OCI Helm 차트. repoURL은 레지스트리 경로, chart는 차트명(kagent 패턴 동일).
+    # CRD(Grafana/GrafanaServiceAccount 등)는 이 차트의 crds subchart로 번들된다(별도 App 불필요).
+    chart: grafana-operator
+    repoURL: ghcr.io/grafana/helm-charts
+    targetRevision: 5.23.0
+    helm:
+      releaseName: grafana-operator
+      valuesObject:
+        # 기본값(cluster-wide watch) 유지 → grafana-operator ns의 operator가
+        # prometheus ns의 Grafana/GrafanaServiceAccount CR을 감지한다.
+        # RPi5 arm64 단일 아키텍처라 nodeSelector 불필요(전 노드 arm64).
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 192Mi
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

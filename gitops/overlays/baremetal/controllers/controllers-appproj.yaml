@@ -16,6 +16,7 @@ spec:
     - https://grafana.github.io/helm-charts
     - https://grafana-community.github.io/helm-charts
     - ghcr.io/kagent-dev/kagent/helm
+    - ghcr.io/grafana/helm-charts
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
