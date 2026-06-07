@@ -7,3 +7,4 @@ namespace: prometheus
 resources:
   - deployment.yaml
   - service.yaml
+  - remotemcpserver.yaml

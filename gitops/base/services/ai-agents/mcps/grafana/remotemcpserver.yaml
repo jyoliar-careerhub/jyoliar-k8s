@@ -1,0 +1,18 @@
+# grafana-mcp-server: mcp-grafana를 kagent에 등록하는 RemoteMCPServer.
+# mcp-grafana 워크로드와 같은 prometheus ns에 self-contained로 둔다.
+#  - kagent 컨트롤러는 cluster-wide watch(KAGENT_NAMESPACE 비어있음)라 prometheus ns도 discover.
+#  - Agent의 tools.mcpServer는 namespace 필드를 지원 → incident-investigator Agent(kagent ns)가
+#    name=grafana-mcp-server, namespace=prometheus 로 교차 ns 참조한다(다음 작업).
+# 기존 kagent-tool-server와 동일한 필드 구성.
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: grafana-mcp-server
+  namespace: prometheus
+spec:
+  description: "Grafana 관측성 MCP(read-only) — incident 조사용(Prometheus/Loki/Tempo 조회)"
+  protocol: STREAMABLE_HTTP
+  url: http://mcp-grafana.prometheus.svc/mcp
+  timeout: 30s
+  sseReadTimeout: 5m0s
+  terminateOnClose: true
