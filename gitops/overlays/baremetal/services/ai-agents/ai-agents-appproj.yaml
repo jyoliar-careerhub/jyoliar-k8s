@@ -7,12 +7,10 @@ spec:
   sourceRepos:
     - git@github.com:jae2274/jyoliar-k8s.git
   destinations:
-    - namespace: ai-agents
-      server: https://kubernetes.default.svc
-    - namespace: argocd
-      server: https://kubernetes.default.svc
-    # mcps/grafana(mcp-grafana)는 GrafanaServiceAccount 토큰을 same-ns로 읽기 위해 prometheus ns에 배치.
-    - namespace: prometheus
+    # 전체 ns 허용(system/services/controllers 프로젝트와 동일).
+    # ai-agents 번들은 ns-agnostic App(mcps 등, 빈 destination.namespace)을 포함하므로
+    # 와일드카드가 필요하다(특정 ns 목록은 빈 ns ''와 매칭되지 않아 InvalidSpecError 발생).
+    - namespace: "*"
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"
