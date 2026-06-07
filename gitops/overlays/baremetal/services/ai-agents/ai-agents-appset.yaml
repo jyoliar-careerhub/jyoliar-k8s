@@ -12,12 +12,16 @@ spec:
           # 공유 secret(ECR pull 등) — 모든 agent가 참조하므로 별도 app으로 분리, phase 1로 먼저 동기화한다.
           - name: ai-agents-secrets
             path: gitops/overlays/baremetal/services/ai-agents/secrets
-            namespace: ai-agents
+            phase: "1"
+          # MCP 서버 그룹 Argo App(mcps). 하위 MCP 리소스를 모두 포함(현재 grafana 1종).
+          # namespace 미지정 → ns-agnostic App. 각 MCP 리소스가 metadata.namespace로 배치된다
+          # (mcp-grafana는 토큰 same-ns read를 위해 prometheus ns. AppProject에 prometheus 허용 추가됨).
+          - name: mcps
+            path: gitops/overlays/baremetal/services/ai-agents/mcps
             phase: "1"
           # agent별 overlay — base 참조 + ECR 이미지 주입. phase 2(secrets 이후). 세부 역할 agent는 여기에 element를 추가한다.
           - name: careerhub-incident-agent
             path: gitops/overlays/baremetal/services/ai-agents/careerhub-incident-agent
-            namespace: ai-agents
             phase: "2"
   strategy:
     type: RollingSync
@@ -43,8 +47,10 @@ spec:
         targetRevision: main
         path: "{{ .path }}"
       destination:
+        # namespace 미지정(ns-agnostic). 모든 element의 리소스가 metadata.namespace를
+        # 명시하므로 각 리소스가 자기 ns로 배치된다(system-appset과 동일 패턴).
+        # mcps처럼 여러 ns에 걸친 App도 이 방식으로 수용.
         server: https://kubernetes.default.svc
-        namespace: "{{ .namespace }}"
       syncPolicy:
         automated:
           prune: true

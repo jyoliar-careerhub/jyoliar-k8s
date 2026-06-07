@@ -1,0 +1,63 @@
+# mcp-grafana: kagent(incident-investigator)용 공유 관측성 MCP 서버(read-only).
+# - prometheus ns에 배치(⒞): GrafanaServiceAccount 토큰(mcp-grafana-token)을 same-ns로 읽음.
+# - read-only: --disable-write (write 도구 전부 비활성).
+# - streamable-http는 기본 localhost 바인딩 → --address 0.0.0.0:8000 필수(Service 접근).
+# - endpoint-path /mcp → URL http://mcp-grafana.prometheus.svc/mcp (Service :80→8000).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-grafana
+  namespace: prometheus
+  labels:
+    app: mcp-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-grafana
+  template:
+    metadata:
+      labels:
+        app: mcp-grafana
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      containers:
+        - name: mcp-grafana
+          image: grafana/mcp-grafana:0.15.2
+          args:
+            - "-t"
+            - "streamable-http"
+            - "--address"
+            - "0.0.0.0:8000"
+            - "--endpoint-path"
+            - "/mcp"
+            - "--disable-write"
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: GRAFANA_URL
+              value: http://monitoring-grafana.prometheus.svc
+            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-grafana-token
+                  key: token
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi

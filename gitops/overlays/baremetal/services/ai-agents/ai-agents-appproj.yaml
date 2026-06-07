@@ -11,6 +11,9 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: argocd
       server: https://kubernetes.default.svc
+    # mcps/grafana(mcp-grafana)는 GrafanaServiceAccount 토큰을 same-ns로 읽기 위해 prometheus ns에 배치.
+    - namespace: prometheus
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
