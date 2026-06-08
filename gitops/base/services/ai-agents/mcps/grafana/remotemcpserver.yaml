@@ -1,8 +1,9 @@
 # grafana-mcp-server: mcp-grafana를 kagent에 등록하는 RemoteMCPServer.
 # mcp-grafana 워크로드와 같은 prometheus ns에 self-contained로 둔다.
 #  - kagent 컨트롤러는 cluster-wide watch(KAGENT_NAMESPACE 비어있음)라 prometheus ns도 discover.
-#  - Agent의 tools.mcpServer는 namespace 필드를 지원 → incident-investigator Agent(kagent ns)가
-#    name=grafana-mcp-server, namespace=prometheus 로 교차 ns 참조한다(다음 작업).
+#  - kagent ns의 Agent(cluster-inspector 등)가 name=grafana-mcp-server, namespace=prometheus 로
+#    교차 ns 참조한다. 단 mcpServer.namespace 필드 존재만으로는 부족하고, 참조되는 쪽(이 CR)이
+#    allowedNamespaces로 명시 허용해야 한다(Gateway API ReferenceGrant 패턴). 미지정 시 same-ns만 허용.
 # 기존 kagent-tool-server와 동일한 필드 구성.
 apiVersion: kagent.dev/v1alpha2
 kind: RemoteMCPServer
@@ -16,3 +17,9 @@ spec:
   timeout: 30s
   sseReadTimeout: 5m0s
   terminateOnClose: true
+  # kagent ns의 Agent만 교차 ns 참조 허용(최소권한). 모든 kagent Agent는 kagent ns에 위치.
+  allowedNamespaces:
+    from: Selector
+    selector:
+      matchLabels:
+        kubernetes.io/metadata.name: kagent
