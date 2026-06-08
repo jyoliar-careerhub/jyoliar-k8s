@@ -6,3 +6,4 @@ resources:
   - llm-secret.yaml
   - httproute.yaml
   - agent-hello-readonly.yaml
+  - agent-cluster-inspector.yaml

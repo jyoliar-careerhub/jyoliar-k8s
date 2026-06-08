@@ -1,0 +1,52 @@
+# cluster-inspector: MCP 토대(kagent-tool-server + grafana-mcp-server) 왕복 검증용 read-only 조사 Agent.
+#  - hello-readonly(도구 1개)의 후속: K8s read-only 8 + Helm read-only 2 + grafana read 4 = 총 14 도구.
+#  - 변경 도구는 toolNames 화이트리스트에 일절 넣지 않아 read-only를 보장한다.
+#  - grafana-mcp-server는 prometheus ns에 있으므로 mcpServer.namespace로 교차 ns 참조.
+#  - ⚠️ 잔여 리스크(D3): read 도구로 Secret 값 조회가 가능하다(kagent-tool-server SA RBAC 미차단).
+#    secrets 차단 RBAC 세분화는 후속 작업으로 분리. 이 Agent의 화이트리스트로는 막을 수 없다.
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: cluster-inspector
+  namespace: kagent
+spec:
+  type: Declarative
+  description: "MCP 토대 왕복 검증용 read-only 클러스터 조사관. K8s/Helm 조회 + Grafana 관측성 조회(변경 도구 미부여)."
+  declarative:
+    modelConfig: default-model-config
+    systemMessage: |
+      너는 careerhub 홈랩 Kubernetes 클러스터의 read-only 조사관이다.
+      사용자의 질문에 대해 클러스터·서비스 현황을 조회 도구로 확인하여
+      간결한 한국어 보고로 답한다. 너에게는 조회 도구만 있으며
+      어떤 변경도 수행할 수 없다(변경 요청시 불가함을 알리고 조회 결과로 대체).
+      보고는 사실(도구 결과) 우선, 추정은 추정임을 명시한다.
+    tools:
+      # ── kagent-tool-server(kagent ns): K8s read-only 8 + Helm read-only 2 ──
+      - type: McpServer
+        mcpServer:
+          apiGroup: kagent.dev
+          kind: RemoteMCPServer
+          name: kagent-tool-server
+          toolNames:
+            - k8s_get_resources
+            - k8s_describe_resource
+            - k8s_get_resource_yaml
+            - k8s_get_pod_logs
+            - k8s_get_events
+            - k8s_get_available_api_resources
+            - k8s_get_cluster_configuration
+            - k8s_check_service_connectivity
+            - helm_list_releases
+            - helm_get_release
+      # ── grafana-mcp-server(prometheus ns, 교차 ns 참조): read 핵심 4종 ──
+      - type: McpServer
+        mcpServer:
+          apiGroup: kagent.dev
+          kind: RemoteMCPServer
+          name: grafana-mcp-server
+          namespace: prometheus
+          toolNames:
+            - query_prometheus
+            - query_loki_logs
+            - list_datasources
+            - list_prometheus_metric_names
