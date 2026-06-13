@@ -6,6 +6,7 @@ resources:
   - ../../../../base/system/prometheus-config
   - alert-slack-webhook-secret.yaml
   - alertmanagerconfig.yaml
+  - grafana-oauth-externalsecret.yaml
 
 patches:
 - target:

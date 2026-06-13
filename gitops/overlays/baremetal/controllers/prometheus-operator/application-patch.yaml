@@ -7,6 +7,25 @@ spec:
   source:
     helm:
       valuesObject:
+        grafana:
+          # 시크릿(client_id/secret)을 env로 주입 — values에 평문 없음.
+          # base의 additionalDataSources(Loki/Tempo)는 merge로 보존됨.
+          envFromSecret: grafana-oauth
+          grafana.ini:
+            server:
+              root_url: https://grafana.mg.jyo-liar.com
+            auth.generic_oauth:
+              enabled: true
+              name: Google
+              scopes: openid email profile
+              auth_url: https://accounts.google.com/o/oauth2/v2/auth
+              token_url: https://oauth2.googleapis.com/token
+              api_url: https://openidconnect.googleapis.com/v1/userinfo
+              # 개인 Gmail은 groups 없음 → 이메일로 역할 결정. 매칭 외에는 '' 반환.
+              role_attribute_path: "email == 'jyo.liar@gmail.com' && 'GrafanaAdmin' || ''"
+              role_attribute_strict: true # 역할 '' → 로그인 거부(허용 이메일 외 전면 차단)
+              allow_assign_grafana_admin: true
+              # auto_login 비활성 → 로그인 폼/basic auth 유지(break-glass)
         alertmanager:
           config:
             route:
