@@ -11,25 +11,9 @@ resources:
 patches:
 - target:
     kind: HTTPRoute
-    name: alertmanager-httproute
-  patch: |-
-    - op: replace
-      path: /spec/hostnames
-      value:
-      - alertmanager.mg.jyo-liar.com
-- target:
-    kind: HTTPRoute
     name: grafana-httproute
   patch: |-
     - op: replace
       path: /spec/hostnames
       value:
       - grafana.mg.jyo-liar.com
-- target:
-    kind: HTTPRoute
-    name: prometheus-httproute
-  patch: |-
-    - op: replace
-      path: /spec/hostnames
-      value:
-      - prometheus.mg.jyo-liar.com
