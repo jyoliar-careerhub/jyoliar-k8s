@@ -3,3 +3,8 @@ kind: Kustomization
 
 resources:
   - ../../../../base/bootstrap/argocd
+  - argocd-oidc-google-externalsecret.yaml
+
+patches:
+  - path: argocd-cm-oidc-patch.yaml
+  - path: argocd-rbac-cm-patch.yaml

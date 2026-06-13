@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  # redirect/issuer 산출에 필수 — 콘솔 외부 URL (baremetal 환경 값)
+  url: https://argocd.mg.jyo-liar.com
+  oidc.config: |
+    name: Google
+    issuer: https://accounts.google.com
+    clientID: $argocd-oidc-google:clientID
+    clientSecret: $argocd-oidc-google:clientSecret
+    requestedScopes: ["openid", "profile", "email"]
