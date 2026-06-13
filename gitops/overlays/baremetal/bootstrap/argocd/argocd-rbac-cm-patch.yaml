@@ -4,7 +4,10 @@ metadata:
   name: argocd-rbac-cm
   namespace: argocd
 data:
-  policy.default: role:readonly
+  # 기본 권한 제거(deny-by-default): policy.csv에 명시된 계정 외에는 권한 0.
+  # 화이트리스트 외 Google 계정도 인증(로그인)은 통과하나 어떤 리소스도 볼 수 없음.
+  # 인증 자체의 원천 차단은 GCP 동의화면 테스트모드(테스트 사용자 화이트리스트)로 별도 처리.
+  policy.default: ''
   scopes: '[email]' # 개인 Gmail은 groups 클레임이 없으므로 email을 subject로 사용
   policy.csv: |
     g, jyo.liar@gmail.com, role:admin
