@@ -6,5 +6,6 @@ kind: Kustomization
 #  - kubeconfig 조립은 로컬 작업 (GitOps 대상 아님 — jyoliar-lab/ops-workflow#19 참조)
 resources:
   - namespace.yaml
+  - agent-cluster-read.yaml
   - ops-workflow-agent.yaml
   - ticket-engineer-agent.yaml
