@@ -29,6 +29,10 @@ spec:
           - name: cert-manager-config
             path: gitops/overlays/baremetal/system/cert-manager-config
             phase: "2"
+          # agent-credentials: 로컬 Claude Code agent별 SA·토큰·RBAC (의존 없음)
+          - name: agent-credentials
+            path: gitops/overlays/baremetal/system/agent-credentials
+            phase: "2"
           - name: kagent-config
             path: gitops/overlays/baremetal/system/kagent-config
             phase: "2"

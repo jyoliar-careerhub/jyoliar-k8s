@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# agent-credentials: 로컬 Claude Code agent(ops-workflow · ticket-engineer)의
+# 클러스터 자격증명. agent별 SA + 장수명 토큰 Secret + view ClusterRoleBinding.
+#  - RBAC는 agent별 별도 바인딩 — audit 구분·최소권한 독립 조정을 위해 묶지 않는다
+#  - kubeconfig 조립은 로컬 작업 (GitOps 대상 아님 — jyoliar-lab/ops-workflow#19 참조)
+namespace: agents
+
+resources:
+  - namespace.yaml
+  - agent-cluster-read.yaml
+  - ops-workflow-agent.yaml
+  - ticket-engineer-agent.yaml

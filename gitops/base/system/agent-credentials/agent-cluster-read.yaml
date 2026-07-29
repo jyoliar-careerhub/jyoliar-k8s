@@ -1,0 +1,42 @@
+# view ClusterRole은 namespaced 리소스 전용 — cluster-scoped 읽기(nodes·PV·CRD 등)와
+# view 집계에 들어오지 않는 CRD 그룹 읽기를 이 보충 ClusterRole이 포괄한다.
+# Role 정의는 공유하되, 바인딩은 규약대로 agent별 분리 (각 agent yaml의 CRB 참조).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agent-cluster-read
+rules:
+  # core group의 cluster-scoped 읽기 — secrets는 core group이므로 여기 절대 추가하지 않는다
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/status", "persistentvolumes", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  # 비-core group 읽기 — Secret이 없는 영역이라 resources 와일드카드 안전.
+  # apiGroups: ["*"] 축약 금지 — core group(= secrets)이 포함된다.
+  # CRD 그룹은 이 저장소가 설치하는 컴포넌트 기준 — 새 operator 도입 시 여기에 추가한다.
+  - apiGroups:
+      # 기본 제공 cluster-scoped 그룹
+      - storage.k8s.io
+      - apiextensions.k8s.io
+      - rbac.authorization.k8s.io
+      - networking.k8s.io
+      - scheduling.k8s.io
+      - node.k8s.io
+      - apiregistration.k8s.io
+      - admissionregistration.k8s.io
+      - metrics.k8s.io
+      # 설치된 CRD 그룹
+      - argoproj.io
+      - cert-manager.io
+      - external-secrets.io
+      - generators.external-secrets.io
+      - gateway.networking.k8s.io
+      - gateway.nginx.org
+      - grafana.integreatly.org
+      - kagent.dev
+      - longhorn.io
+      - mongodbcommunity.mongodb.com
+      - monitoring.coreos.com
+      - postgresql.cnpg.io
+      - snapshot.storage.k8s.io
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]

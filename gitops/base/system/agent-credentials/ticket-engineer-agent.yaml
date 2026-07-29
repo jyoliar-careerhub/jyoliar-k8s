@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ticket-engineer-agent
+---
+# 장수명 SA 토큰 (1.24+에서는 자동 생성되지 않으므로 명시 생성)
+# 토큰 값은 control plane이 채운다 — 이 매니페스트에는 SA 참조 annotation만 담는다.
+# 회전(유출 의심 시): 이 Secret 삭제 후 재생성 → kubeconfig의 토큰 교체
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ticket-engineer-agent-token
+  annotations:
+    kubernetes.io/service-account.name: ticket-engineer-agent
+type: kubernetes.io/service-account-token
+---
+# 클러스터 전역 읽기 전용 (view는 Secret 값 읽기를 제외한다 — 권한 상승 경로 차단)
+# 쓰기 권한은 부여하지 않는다 — 실제 필요가 확인될 때 agent별·리소스별 별도 변경으로
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ticket-engineer-agent-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: ticket-engineer-agent
+---
+# cluster-scoped·CRD 그룹 읽기 보충 (agent-cluster-read.yaml 참조)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ticket-engineer-agent-cluster-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agent-cluster-read
+subjects:
+  - kind: ServiceAccount
+    name: ticket-engineer-agent
