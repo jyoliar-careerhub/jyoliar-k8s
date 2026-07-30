@@ -33,12 +33,15 @@ spec:
         prometheus:
           prometheusSpec:
             retention: 30d
+            # 크기 상한 — WAL 포함 계산이므로 PVC(40Gi≈42.9GB)보다 낮게 유지해야 한다.
+            # 이게 없으면 시간 보존(30d)만으로는 디스크 만석을 막을 수 없다(#24).
+            retentionSize: 34GB
             storageSpec:
               volumeClaimTemplate:
                 spec:
                   resources:
                     requests:
-                      storage: 30Gi
+                      storage: 40Gi
                   accessModes:
                     - ReadWriteOnce
                   volumeMode: Filesystem
