@@ -23,6 +23,32 @@ spec:
             - --exporter.addr=0.0.0.0:9212
             - --exporter.interval=300
             - --check.delay=0.1
+            # ── 화이트리스트 (부분 매치 정규식 · ops-workflow#26 2차 배포) ──
+            # 실측 전수 조사로 확정한 "정당하게 빈 셀렉터"만 배제한다.
+            # kubelet_volume_stats_* 등 실사각 경로는 넣지 않는다 (본론 감시 대상).
+            # scheduler 히스토그램·etcd peer 카운터(재시작-일과성)는 신호로 유지 — 미배제.
+            # ① 카나리 — 화이트리스트 동작 검증용 (AC ⑤)
+            - --check.ignore-selector=jyoliar_promcheck_canary_nonexistent_metric
+            # ② PVC 룰 unless 예외 절 — ROX PVC·제외 라벨 PVC가 없는 한 상시 공집합
+            - '--check.ignore-selector=access_mode="ReadOnlyMany"'
+            - --check.ignore-selector=label_excluded_from_alerts
+            # ③ 이벤트형 — 조건 발생 시에만 시계열 생성, 비어있음 = 건강
+            - --check.ignore-selector=kube_pod_container_status_waiting_reason
+            - --check.ignore-selector=owner_kind
+            - --check.ignore-selector=kubelet_evictions
+            - --check.ignore-selector=node.kubernetes.io/unreachable
+            - --check.ignore-selector=ToBeDeletedByClusterAutoscaler
+            - '--check.ignore-selector=result="error"'
+            # ④ 구조적 공집합·미사용 기능 (chart 소유 룰 — 삭제 불가)
+            - --check.ignore-selector=integration!~
+            - --check.ignore-selector=prometheus_remote_storage_
+            - --check.ignore-selector=prometheus_sd_refresh_failures_total
+            - --check.ignore-selector=container_memory_swap
+            # ⑤ 기능 미보유 — 룰은 유지(추후 도입 대비), 소음만 배제 (사람 결정)
+            - --check.ignore-selector=kube_resourcequota
+            - --check.ignore-selector=kube_horizontalpodautoscaler_
+            - --check.ignore-selector=node_md_disks
+            - --check.ignore-selector=node_bonding_
           ports:
             - { name: metrics, containerPort: 9212 }
           resources:
