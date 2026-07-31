@@ -1,0 +1,19 @@
+# 화이트리스트 동작 검증용 카나리 룰 (티켓 #26 AC ④·⑤)
+# 고의로 존재하지 않는 메트릭을 참조한다 → promcheck가 이 룰의 셀렉터 실패를
+# 감지해 PrometheusRuleSelectorHasNoData가 발화해야 정상 (1차 배포 검증).
+# 2차 배포에서 이 셀렉터를 --check.ignore-selector에 추가해 해소를 검증한다.
+# 레코딩 룰이므로 빈 결과 자체는 아무 부작용이 없다.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: promcheck-validation-canary
+  namespace: prometheus
+  labels:
+    app: promcheck
+    release: monitoring # ruleSelector 요구 — 없으면 에러 없이 무시됨
+spec:
+  groups:
+    - name: promcheck.validation-canary
+      rules:
+        - record: promcheck:validation_canary:nonexistent
+          expr: sum(jyoliar_promcheck_canary_nonexistent_metric)

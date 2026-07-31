@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promcheck
+  namespace: prometheus
+  labels: { app: promcheck }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: promcheck }
+  template:
+    metadata:
+      labels: { app: promcheck }
+    spec:
+      containers:
+        - name: promcheck
+          image: ghcr.io/cbrgm/promcheck:v1.2.48
+          args:
+            # 룰 원천: --check.file이 없으면 이 Prometheus의 /api/v1/rules에서
+            # 로드된 룰 전체를 직접 가져온다 → 파일 접근·ConfigMap 이름 결합 없음
+            - --prometheus.url=http://monitoring-kube-prometheus-prometheus.prometheus.svc:9090
+            - --exporter.enabled=true
+            - --exporter.addr=0.0.0.0:9212
+            - --exporter.interval=300
+            - --check.delay=0.1
+          ports:
+            - { name: metrics, containerPort: 9212 }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 256Mi }

@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: promcheck-meta-alerts
+  namespace: prometheus
+  labels:
+    app: promcheck
+    release: monitoring # ruleSelector 요구 — 없으면 에러 없이 무시됨
+spec:
+  groups:
+    - name: promcheck.meta
+      rules:
+        # 본론: 어떤 룰의 셀렉터가 빈 결과 — group/rule 라벨에 룰명이 실림
+        - alert: PrometheusRuleSelectorHasNoData
+          expr: promcheck_validation_selectors_total{status="failed"} > 0
+          for: 30m # 명멸성 오탐 흡수 — 검사 주기(5m)의 몇 배
+          labels: { severity: warning }
+          annotations:
+            summary: 알럿/레코딩 룰이 참조하는 시계열이 존재하지 않음
+            description: '{{ $labels.group }}/{{ $labels.rule }} 룰의 셀렉터가 빈 결과 ({{ $value }}개)'
+        # 감시자의 감시: promcheck 자신이 죽으면
+        - alert: PromcheckAbsent
+          expr: absent(promcheck_validation_selectors_total)
+          for: 15m
+          labels: { severity: warning }
+          annotations:
+            summary: promcheck exporter가 사라짐 — 룰 원천 감시가 다시 무력화됨

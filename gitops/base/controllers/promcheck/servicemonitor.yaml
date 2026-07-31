@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: promcheck
+  namespace: prometheus
+  labels:
+    app: promcheck
+    release: monitoring # serviceMonitorSelector 요구 — 없으면 에러 없이 무시됨
+spec:
+  selector:
+    matchLabels: { app: promcheck }
+  endpoints:
+    - port: metrics
+      interval: 60s

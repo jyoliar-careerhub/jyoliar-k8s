@@ -45,6 +45,12 @@ spec:
             path: gitops/overlays/baremetal/controllers/tempo
             namespace: prometheus
             phase: default
+          # promcheck: 알럿 룰 데이터 원천 감시 exporter — plain manifest
+          # (jyoliar-lab/ops-workflow#26)
+          - name: promcheck
+            path: gitops/overlays/baremetal/controllers/promcheck
+            namespace: prometheus
+            phase: default
           # grafana-operator: CRD 번들 operator(cert-manager 패턴). step1(default)로
           # 먼저 동기화 → step2(app)의 grafana-mcp(Grafana/GrafanaServiceAccount CR)보다 선행.
           - name: grafana-operator

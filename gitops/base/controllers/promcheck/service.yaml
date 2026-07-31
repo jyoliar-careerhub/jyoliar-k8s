@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: promcheck
+  namespace: prometheus
+  labels: { app: promcheck }
+spec:
+  selector: { app: promcheck }
+  ports:
+    - { name: metrics, port: 9212, targetPort: metrics }
