@@ -46,6 +46,27 @@ spec:
           upgradeJob:
             enabled: true
             forceConflicts: true
+        # KSM 자기 텔레메트리(kube_state_metrics_list_total 등) 노출 — KubeStateMetrics* 알럿의
+        # 데이터 원천. 미노출 상태로는 해당 알럿 4종이 상시 무력 (ops-workflow#26 promcheck 실측)
+        kube-state-metrics:
+          selfMonitor:
+            enabled: true
+        prometheus-node-exporter:
+          # extraArgs는 리스트 교체(merge 아님) — 차트 기본 filesystem 제외 2항을 유지한 채 추가
+          extraArgs:
+            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run/containerd/.+|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$
+            # NodeSystemdService{Failed,Crashlooping} 알럿의 데이터 원천 (node_systemd_unit_state ·
+            # node_systemd_service_restart_total). .service 단위로 한정해 카디널리티 완충
+            - --collector.systemd
+            - --collector.systemd.unit-include=.+\.service
+            - --collector.systemd.enable-restarts-metrics
+          extraHostVolumeMounts:
+            # systemd collector는 호스트 D-Bus로 systemd에 질의 — 읽기 전용 소켓 마운트
+            - name: dbus
+              hostPath: /var/run/dbus/system_bus_socket
+              mountPath: /var/run/dbus/system_bus_socket
+              readOnly: true
         grafana:
           additionalDataSources:
             - name: Loki - careerhub

@@ -30,6 +30,14 @@ spec:
           config:
             route:
               group_interval: 1m
+          alertmanagerSpec:
+            # HA 2-replica — 단일 replica 시절 배포 노드 사망 = 알럿 전면 침묵의 재발 방지.
+            # gossip 클러스터가 형성되며 alertmanager_cluster_members가 노출되어
+            # Alertmanager{MembersInconsistent,ClusterDown,...} 알럿의 데이터 원천이 생긴다.
+            # 알림 중복은 notification log gossip이 흡수 (ops-workflow#26)
+            replicas: 2
+            # 두 replica가 같은 노드에 못 앉게 강제 — soft(기본)면 HA 목적이 보장되지 않음
+            podAntiAffinity: hard
         prometheus:
           prometheusSpec:
             retention: 30d
