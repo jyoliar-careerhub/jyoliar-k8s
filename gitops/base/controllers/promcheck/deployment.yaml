@@ -34,6 +34,10 @@ spec:
             - --check.ignore-selector=label_excluded_from_alerts
             # ③ 이벤트형 — 조건 발생 시에만 시계열 생성, 비어있음 = 건강
             - --check.ignore-selector=kube_pod_container_status_waiting_reason
+            # KSM은 Job의 Failed condition이 실재할 때만 kube_job_failed를 노출한다
+            # (Complete만 있는 Job은 미노출) → 실패 Job이 없으면 상시 공집합.
+            # 2차 배포 시점에는 실패 Job이 남아 있어 통과했고, TTL로 정리된 뒤 발화.
+            - --check.ignore-selector=kube_job_failed
             - --check.ignore-selector=owner_kind
             - --check.ignore-selector=kubelet_evictions
             - --check.ignore-selector=node.kubernetes.io/unreachable
