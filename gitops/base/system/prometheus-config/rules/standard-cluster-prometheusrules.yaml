@@ -297,19 +297,3 @@ spec:
               AlertmanagerConfig(prometheus/alertmanager-config)의 route에 해당 severity 갈래가 없어
               캐치올(blackhole)로 버려지고 있다. 알럿 룰의 severity 라벨을 critical|warning|info|none 중
               하나로 고치거나, 의도된 값이라면 route에 갈래를 추가한다.
-
-        ## TODO(#39 · 임시): AlertSeverityUnrouted의 발화·통보 도달을 실측하기 위한 탐침.
-        ## 라우팅되지 않는 severity 값을 달고 상시 발화하므로 자신은 blackhole로 버려지고,
-        ## 5분 뒤 AlertSeverityUnrouted가 Slack #alerts에 도달해야 한다.
-        ## 확인 후 별도 PR로 제거한다.
-        - alert: UnroutedSeverityProbe
-          expr: vector(1)
-          for: 0m
-          labels:
-            severity: probe
-          annotations:
-            summary: '[임시] AlertSeverityUnrouted 검증용 탐침 알럿'
-            description: >-
-              jyoliar-lab/ops-workflow#39의 메타 알럿 검증용이다. 이 알럿 자신은 severity=probe라
-              어느 갈래에도 걸리지 않아 통보되지 않으며, AlertSeverityUnrouted가 이를 감지해
-              통보하는 것이 확인 대상이다. 검증 후 제거한다.
