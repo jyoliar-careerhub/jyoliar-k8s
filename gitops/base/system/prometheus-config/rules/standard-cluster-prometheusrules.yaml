@@ -252,3 +252,64 @@ spec:
             sum by (pod,namespace,node) (
               rate(container_network_transmit_packets_dropped_total[5m]) * on(pod, namespace) group_left() (kube_pod_status_phase{phase="Running"}==1)
             )
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: standard-cluster-monitoring-alert-rules
+  labels:
+    release: monitoring
+  annotations:
+    prometheus-operator-validated: 'true'
+spec:
+  groups:
+    ## AlertmanagerConfig의 캐치올이 blackhole(버림)이므로, 라우팅 갈래가 없는 severity 값의
+    ## 알럿은 통보 없이 사라진다. 그 침묵을 알럿으로 드러내는 것이 이 그룹의 역할이다.
+    ## 갈래를 늘리거나 줄이면 아래 severity 정규식도 함께 고쳐야 한다.
+    - name: alerting-pipeline
+      rules:
+        - alert: AlertSeverityUnrouted
+          ## 원본의 alertname·severity를 unrouted_* 로 옮겨 둔다 — 생성되는 알럿의 alertname은
+          ## 이 룰 이름으로, severity는 아래 labels(critical)로 덮어써지므로 그대로 두면
+          ## 어느 알럿의 어떤 값이 문제인지가 소실된다.
+          ## 첫 label_replace는 severity 라벨이 아예 없는 경우의 기본값을 깐다.
+          ## max by(...)는 한 알럿이 시계열 여럿으로 뜰 때(파드별 등) 통보를 하나로 접는다.
+          expr: |-
+            max by (unrouted_alertname, unrouted_severity, namespace) (
+              label_replace(
+                label_replace(
+                  label_replace(
+                    ALERTS{alertstate="firing", severity!~"critical|warning|info|none"}
+                  , "unrouted_severity", "<absent>", "", "")
+                , "unrouted_severity", "$1", "severity", "(.+)")
+              , "unrouted_alertname", "$1", "alertname", "(.+)")
+            )
+          for: 5m
+          labels:
+            ## 미분류를 알리는 알럿이 미분류로 버려지면 안 된다 — 반드시 라우팅되는 값
+            severity: critical
+          annotations:
+            summary: 라우팅 규칙에 없는 severity 값의 알럿이 발화 중 — 통보 없이 버려지고 있다
+            description: >-
+              {{ $labels.unrouted_alertname }} (severity={{ $labels.unrouted_severity }}) 가 발화 중이나
+              AlertmanagerConfig(prometheus/alertmanager-config)의 route에 해당 severity 갈래가 없어
+              캐치올(blackhole)로 버려지고 있다. 알럿 룰의 severity 라벨을 critical|warning|info|none 중
+              하나로 고치거나, 의도된 값이라면 route에 갈래를 추가한다.
+
+        ## TODO(#39 · 임시): AlertSeverityUnrouted의 발화·통보 도달을 실측하기 위한 탐침.
+        ## 라우팅되지 않는 severity 값을 달고 상시 발화하므로 자신은 blackhole로 버려지고,
+        ## 5분 뒤 AlertSeverityUnrouted가 Slack #alerts에 도달해야 한다.
+        ## 확인 후 별도 PR로 제거한다.
+        - alert: UnroutedSeverityProbe
+          expr: vector(1)
+          for: 0m
+          labels:
+            severity: probe
+          annotations:
+            summary: '[임시] AlertSeverityUnrouted 검증용 탐침 알럿'
+            description: >-
+              jyoliar-lab/ops-workflow#39의 메타 알럿 검증용이다. 이 알럿 자신은 severity=probe라
+              어느 갈래에도 걸리지 않아 통보되지 않으며, AlertSeverityUnrouted가 이를 감지해
+              통보하는 것이 확인 대상이다. 검증 후 제거한다.

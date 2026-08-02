@@ -4,9 +4,13 @@ metadata:
   name: alertmanager-config
 spec:
   route:
-    receiver: 'info-slack-notifications'
+    # 캐치올은 '버림'이다. 명시 라우팅되지 않은 알럿(InfoInhibitor 등 배관 알럿)은
+    # 여기로 낙하해 아무 데도 가지 않는다. 라우팅이 빠진 알럿이 조용히 사라지는 것은
+    # 룰 층의 메타 알럿(AlertSeverityUnrouted)이 감지한다.
+    receiver: 'blackhole'
     groupBy: [severity, alertname]
     routes:
+      # 데드맨 스위치 — alertname으로 잡으므로 severity와 무관하게 살아남는다
       - receiver: 'info-slack-notifications'
         repeatInterval: 24h
         matchers:
@@ -23,7 +27,17 @@ spec:
           - name: severity
             value: warning
             matchType: =
+      # 캐치올이 blackhole이 되므로 info는 명시하지 않으면 사라진다
+      - receiver: 'info-slack-notifications'
+        matchers:
+          - name: severity
+            value: info
+            matchType: =
   receivers:
+    # integration 없음 = 아무 데도 보내지 않는다 (CRD 스키마상 receiver는 name만 필수).
+    # 차트 기본의 'null' receiver는 operator가 이름을 <ns>/<name>/<receiver>로 접두하므로
+    # CRD route에서 참조할 수 없다 — 여기 직접 정의해야 한다.
+    - name: 'blackhole'
     - name: 'info-slack-notifications'
       slackConfigs:
         - apiURL:
