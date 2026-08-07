@@ -33,7 +33,7 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
 ```
 .
 ├── .kube/                      # kubeconfig 파일 저장소 (gitignore 대상)
-│   └── {환경명}.config         # 예: aws-ec2.config
+│   └── {환경명}.config         # 예: baremetal.config
 ├── gitops/                     # ArgoCD로 관리되는 K8s 리소스
 │   ├── base/                   # 공통 리소스 정의
 │   └── overlays/               # 환경별 오버레이
@@ -42,7 +42,6 @@ Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
     ├── base/                   # 공통 리소스 정의
     │   └── rook/               # Rook-Ceph 관련 리소스
     └── overlays/               # 환경별 오버레이
-        ├── aws-ec2/
         └── baremetal/
 ```
 

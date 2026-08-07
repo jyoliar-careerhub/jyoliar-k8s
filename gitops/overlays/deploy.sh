@@ -8,10 +8,10 @@ usage() {
     echo "Usage: $0 <environment>"
     echo ""
     echo "Arguments:"
-    echo "  environment    Environment name (e.g., aws-ec2)"
+    echo "  environment    Environment name (e.g., baremetal)"
     echo ""
     echo "Example:"
-    echo "  $0 aws-ec2"
+    echo "  $0 baremetal"
     exit 1
 }
 
