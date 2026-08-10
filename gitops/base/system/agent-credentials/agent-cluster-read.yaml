@@ -25,17 +25,22 @@ rules:
       - admissionregistration.k8s.io
       - metrics.k8s.io
       # 설치된 CRD 그룹
+      - acme.cert-manager.io
       - argoproj.io
+      - barmancloud.cnpg.io
       - cert-manager.io
       - external-secrets.io
+      - externaldns.k8s.io
       - generators.external-secrets.io
       - gateway.networking.k8s.io
       - gateway.nginx.org
       - grafana.integreatly.org
       - kagent.dev
       - longhorn.io
+      - mongodb.com
       - mongodbcommunity.mongodb.com
       - monitoring.coreos.com
+      - monitoring.grafana.com
       - postgresql.cnpg.io
       - snapshot.storage.k8s.io
     resources: ["*"]
