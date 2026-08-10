@@ -2,6 +2,8 @@ apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
   name: careerhub-postgresql-backup
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1" # Cluster가 참조하므로 먼저 생성
 spec:
   configuration:
     destinationPath: OVERRIDE_REQUIRED

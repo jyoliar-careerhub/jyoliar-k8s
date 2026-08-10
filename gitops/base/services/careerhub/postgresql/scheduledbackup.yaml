@@ -2,6 +2,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
   name: careerhub-postgresql-daily
+  annotations:
+    argocd.argoproj.io/sync-wave: "1" # Cluster보다 나중에 생성
 spec:
   # CNPG의 cron은 초 자리가 하나 더 있는 6항이고 UTC로 해석된다.
   # 18:00 UTC = 03:00 KST — 트래픽이 가장 적은 시간대.
