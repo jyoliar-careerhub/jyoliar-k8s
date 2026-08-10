@@ -15,6 +15,9 @@ spec:
           - name: careerhub-prod-secrets
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/secrets
             phase: "1"
+          - name: careerhub-prod-zitadel
+            path: gitops/overlays/baremetal/services/careerhub/prod/apps/zitadel
+            phase: "1"
           - name: careerhub-prod-review-grpc
             path: gitops/overlays/baremetal/services/careerhub/prod/apps/review-grpc
             phase: "2"
