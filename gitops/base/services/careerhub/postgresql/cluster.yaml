@@ -24,6 +24,9 @@ spec:
   # 이 클러스터에 DB가 늘어도 백업 설정은 그대로다.
   plugins:
     - name: barman-cloud.cloudnative-pg.io
+      # 웹훅이 채워 넣는 기본값 — 명시하지 않으면 라이브와 매니페스트가 어긋나
+      # ArgoCD가 이 Cluster를 영구히 OutOfSync로 본다.
+      enabled: true
       isWALArchiver: true
       parameters:
         barmanObjectName: careerhub-postgresql-backup

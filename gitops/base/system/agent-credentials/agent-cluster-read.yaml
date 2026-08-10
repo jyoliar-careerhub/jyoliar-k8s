@@ -26,6 +26,7 @@ rules:
       - metrics.k8s.io
       # 설치된 CRD 그룹
       - argoproj.io
+      - barmancloud.cnpg.io
       - cert-manager.io
       - external-secrets.io
       - generators.external-secrets.io
