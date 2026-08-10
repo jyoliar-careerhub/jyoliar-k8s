@@ -3,8 +3,6 @@ kind: Kustomization
 
 resources:
   - ../../../../../../base/services/careerhub/postgresql
-  # 임시 — 복구 실측 검증용. 검증 후 제거한다 (jyoliar-lab/ops-workflow#49)
-  - restore-cluster.yaml
 
 patches:
   - path: cluster-patch.yaml
