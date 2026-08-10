@@ -7,3 +7,4 @@ resources:
 patches:
   - path: cluster-patch.yaml
   - path: pooler-patch.yaml
+  - path: objectstore-patch.yaml

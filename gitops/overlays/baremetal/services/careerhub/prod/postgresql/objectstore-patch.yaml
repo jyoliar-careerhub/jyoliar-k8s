@@ -1,0 +1,18 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: careerhub-postgresql-backup
+spec:
+  configuration:
+    destinationPath: s3://homelab-cnpg-backup-986069063944/careerhub-prod
+  instanceSidecarConfiguration:
+    # pod-identity webhook이 없는 클러스터라 IRSA 배선을 직접 준다
+    # (external-secrets와 같은 방식). 토큰은 Cluster의
+    # projectedVolumeTemplate이 /projected/aws-token에 심는다.
+    env:
+      - name: AWS_REGION
+        value: ap-northeast-2
+      - name: AWS_ROLE_ARN
+        value: arn:aws:iam::986069063944:role/homelab-k8s-cnpg-backup
+      - name: AWS_WEB_IDENTITY_TOKEN_FILE
+        value: /projected/aws-token
