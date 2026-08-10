@@ -18,4 +18,4 @@ spec:
       compression: gzip
       maxParallel: 2
 
-  retentionPolicy: 30d
+  retentionPolicy: OVERRIDE_REQUIRED

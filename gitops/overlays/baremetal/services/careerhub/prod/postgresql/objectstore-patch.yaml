@@ -18,3 +18,4 @@ spec:
         value: arn:aws:iam::986069063944:role/homelab-cnpg-backup-prod
       - name: AWS_WEB_IDENTITY_TOKEN_FILE
         value: /projected/aws-token
+  retentionPolicy: 3d
