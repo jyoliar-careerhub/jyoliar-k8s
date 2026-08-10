@@ -25,6 +25,14 @@ spec:
             path: gitops/overlays/baremetal/controllers/cloudnativepg
             namespace: cnpg-system
             phase: default
+          # barman-cloud-plugin: CNPG의 백업을 지는 CNPG-I 플러그인.
+          # 인트리 barman-cloud가 1.26부터 deprecated라 신규는 이쪽이다.
+          # cert-manager(같은 default phase)가 발급하는 인증서에 의존한다.
+          # (jyoliar-lab/ops-workflow#49)
+          - name: barman-cloud-plugin
+            path: gitops/overlays/baremetal/controllers/barman-cloud-plugin
+            namespace: cnpg-system
+            phase: default
           - name: external-dns
             path: gitops/overlays/baremetal/controllers/external-dns
             namespace: external-dns

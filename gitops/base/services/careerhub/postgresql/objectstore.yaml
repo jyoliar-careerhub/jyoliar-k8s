@@ -1,0 +1,23 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: careerhub-postgresql-backup
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1" # Cluster가 참조하므로 먼저 생성
+spec:
+  configuration:
+    destinationPath: OVERRIDE_REQUIRED
+
+    # IRSA — 자격증명을 Secret으로 두지 않고 SA 토큰으로 위임받는다.
+    # 이 클러스터에는 EKS pod-identity webhook이 없으므로 실제 배선
+    # (AWS_ROLE_ARN·토큰 경로 env)은 overlay가 instanceSidecarConfiguration에 준다.
+    s3Credentials:
+      inheritFromIAMRole: true
+
+    data:
+      compression: gzip
+    wal:
+      compression: gzip
+      maxParallel: 2
+
+  retentionPolicy: OVERRIDE_REQUIRED

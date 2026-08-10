@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - password.yaml
+  - objectstore.yaml
   - cluster.yaml
   - database.yaml
   - pooler.yaml
+  - scheduledbackup.yaml

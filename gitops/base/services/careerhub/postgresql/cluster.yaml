@@ -19,6 +19,24 @@ spec:
 
   primaryUpdateMethod: switchover
 
+  # barman-cloud 플러그인이 base backup과 WAL 아카이빙을 진다.
+  # 물리 백업이라 인스턴스 전체(모든 DB·롤·WAL)가 한 덩어리로 올라간다 —
+  # 이 클러스터에 DB가 늘어도 백업 설정은 그대로다.
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: careerhub-postgresql-backup
+
+  # IRSA용 SA 토큰. CNPG가 /projected 아래에 마운트하고,
+  # barman 사이드카가 postgres 컨테이너의 마운트를 그대로 상속한다.
+  projectedVolumeTemplate:
+    sources:
+      - serviceAccountToken:
+          audience: sts.amazonaws.com
+          expirationSeconds: 86400
+          path: aws-token
+
   priorityClassName: OVERRIDE_REQUIRED
 
   resources: OVERRIDE_REQUIRED
