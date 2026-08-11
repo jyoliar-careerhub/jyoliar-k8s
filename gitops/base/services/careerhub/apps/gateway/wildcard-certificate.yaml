@@ -10,5 +10,8 @@ spec:
   dnsNames:
     - "*.jyo-liar.com"
     - "jyo-liar.com"
+    # 와일드카드는 한 레이블만 커버한다 — 2단 네임스페이스(신규 공개면:
+    # Zitadel 등)는 별도 SAN이 필요하다. issuer가 DNS-01이라 1회 비용.
+    - "*.careerhub.jyo-liar.com"
   duration: 2160h
   renewBefore: 360h

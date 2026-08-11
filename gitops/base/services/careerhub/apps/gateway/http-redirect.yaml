@@ -5,6 +5,7 @@ metadata:
 spec:
   hostnames:
     - careerhub.jyo-liar.com
+    - id.careerhub.jyo-liar.com
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

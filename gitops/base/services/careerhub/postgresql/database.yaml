@@ -8,3 +8,14 @@ spec:
   cluster:
     name: careerhub-postgresql
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: careerhub-zitadel-db
+spec:
+  name: zitadel
+  owner: zitadel
+  cluster:
+    name: careerhub-postgresql
+  databaseReclaimPolicy: retain

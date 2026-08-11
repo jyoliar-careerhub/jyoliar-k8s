@@ -9,8 +9,14 @@ spec:
   description: CareerHub prod applications
   sourceRepos:
     - git@github.com:jae2274/jyoliar-k8s.git
+    # Zitadel Helm 차트 — zitadel-helm Application의 source.
+    # 배포와 같은 커밋이어야 첫 sync가 성립한다.
+    - https://charts.zitadel.com
   destinations:
     - namespace: careerhub-prod
+      server: https://kubernetes.default.svc
+    # zitadel app이 zitadel-helm Application 리소스를 argocd에 만든다.
+    - namespace: argocd
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"

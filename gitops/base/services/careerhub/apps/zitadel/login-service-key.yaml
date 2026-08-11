@@ -1,0 +1,32 @@
+# login v2 ↔ zitadel 간 SystemAPIUsers 인증용 RSA 키쌍.
+# 차트 기본값은 helm 템플릿 시점 생성 + lookup 재사용인데, ArgoCD는 lookup이
+# 빈 값이라 sync마다 키가 회전한다(영구 OutOfSync + 로그인 단절). 그래서
+# 키쌍을 cert-manager 관할로 빼고 loginServiceKeySecretName으로 주입한다.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: zitadel-selfsigned
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zitadel-login-service-key
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  secretName: zitadel-login-service-key
+  issuerRef:
+    name: zitadel-selfsigned
+    kind: Issuer
+  # JWT 서명·검증 전용 — CN은 차트 자체 생성값과 동형으로 맞춘다.
+  commonName: login-service
+  duration: 87600h # 10y — 차트 자체 생성(3650d)과 동일 급
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA # login 컨테이너가 RS256으로 서명한다 — RSA 필수
+    size: 4096
+    rotationPolicy: Never
