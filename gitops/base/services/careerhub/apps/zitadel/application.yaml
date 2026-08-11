@@ -61,14 +61,14 @@ spec:
             memory: 512Mi
           limits:
             memory: 1Gi
+        # hostnames는 명시하지 않는다 — 차트가 ExternalDomain으로 채운다.
+        # 라우팅 호스트와 정체성 호스트는 같아야 하므로 원천을 하나로 둔다.
         gateway:
           httpRoute:
             enabled: true
             parentRefs:
               - name: careerhub-nginx-gateway
                 sectionName: https
-            hostnames:
-              - OVERRIDE_REQUIRED
         # login v2 UI — Actions v2와의 세대 정렬(ADR-0030 Consequences).
         login:
           enabled: true
@@ -89,8 +89,6 @@ spec:
               parentRefs:
                 - name: careerhub-nginx-gateway
                   sectionName: https
-              hostnames:
-                - OVERRIDE_REQUIRED
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
