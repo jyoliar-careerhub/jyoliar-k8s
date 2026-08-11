@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel-helm
+spec:
+  destination:
+    namespace: careerhub-prod
+  project: careerhub-prod-apps
+  source:
+    helm:
+      valuesObject:
+        zitadel:
+          configmapConfig:
+            # 호스트 판정: #51(신규 호스트, *.careerhub 네임스페이스) + 사용자 합의.
+            # HTTPRoute(본체·login) hostnames도 차트가 이 값에서 파생한다.
+            ExternalDomain: id.careerhub.jyo-liar.com

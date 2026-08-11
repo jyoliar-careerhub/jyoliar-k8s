@@ -4,7 +4,7 @@ metadata:
   name: careerhub-httproute
 spec:
   hostnames:
-    - careerhub.jyo-liar.com
+    - OVERRIDE_REQUIRED
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

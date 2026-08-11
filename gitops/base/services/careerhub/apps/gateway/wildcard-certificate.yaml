@@ -1,14 +1,16 @@
+# 이 gateway가 실제로 서빙하는 것은 careerhub 영역뿐이다 — cert 범위를
+# 영역에 맞춘다(mg의 wildcard-mg-tls와 동형). 이전의 wildcard-jyoliar-tls
+# (*.jyo-liar.com 전역)는 용도 대비 과대했다.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: wildcard-jyoliar-tls
+  name: wildcard-careerhub-tls
 spec:
-  secretName: wildcard-jyoliar-tls
+  secretName: wildcard-careerhub-tls
   issuerRef:
     name: letsencrypt-dns
     kind: ClusterIssuer
   dnsNames:
-    - "*.jyo-liar.com"
-    - "jyo-liar.com"
+    - OVERRIDE_REQUIRED
   duration: 2160h
   renewBefore: 360h

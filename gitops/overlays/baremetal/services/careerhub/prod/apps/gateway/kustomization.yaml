@@ -3,3 +3,8 @@ kind: Kustomization
 
 resources:
   - ../../../../../../../base/services/careerhub/apps/gateway
+
+patches:
+  - path: httproute-patch.yaml
+  - path: http-redirect-patch.yaml
+  - path: certificate-patch.yaml

@@ -1,0 +1,97 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # namespace를 명시하지 않는다 — 부모 app의 destination(환경 ns)에 착지한다.
+  # Application 이름은 ns 단위로 유일하면 되므로 환경 간 이름 충돌이 없다
+  # (apps-in-any-namespace: application.namespaces가 이미 "*"다).
+  name: zitadel-helm
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: OVERRIDE_REQUIRED
+    server: https://kubernetes.default.svc
+  project: OVERRIDE_REQUIRED
+  source:
+    chart: zitadel
+    repoURL: https://charts.zitadel.com
+    targetRevision: 10.0.4
+    helm:
+      releaseName: zitadel
+      valuesObject:
+        zitadel:
+          # masterkey는 SSM → ExternalSecret 경로로 주입된다(#50). 값은 git에 없다.
+          masterkeySecretName: zitadel-masterkey
+          configmapConfig:
+            ExternalDomain: OVERRIDE_REQUIRED
+            ExternalPort: 443
+            ExternalSecure: true
+            # TLS는 gateway가 종단한다. 클러스터 내부 구간은 h2c.
+            TLS:
+              Enabled: false
+            Database:
+              Postgres:
+                # pgbouncer(transaction 풀링)를 우회해 rw 서비스 직결.
+                # Zitadel은 프로토콜 수준 prepared statement 의존이라 transaction
+                # 풀링과 궁합이 나쁘다 — 기존 앱(pooler 경유)과 접속 경로가 갈린다.
+                Host: careerhub-postgresql-rw
+                Port: 5432
+                Database: zitadel
+                User:
+                  Username: zitadel
+                  SSL:
+                    Mode: disable
+        # DB role·database는 CNPG가 선공급한다(managed role + Database CRD).
+        # 슈퍼유저 자격이 필요한 init 단계는 그래서 필요 없다.
+        initJob:
+          enabled: false
+        env:
+          - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zitadel-pg-password
+                key: password
+        nodeSelector:
+          kubernetes.io/arch: arm64
+        # 클러스터 첫 대형 requests — BestEffort인 기존 워크로드보다 eviction
+        # 순위가 뒤로 가, 메모리 압박 시 IdP가 먼저 죽지 않는다.
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
+        # hostnames는 명시하지 않는다 — 차트가 ExternalDomain으로 채운다.
+        # 라우팅 호스트와 정체성 호스트는 같아야 하므로 원천을 하나로 둔다.
+        gateway:
+          httpRoute:
+            enabled: true
+            parentRefs:
+              - name: careerhub-nginx-gateway
+                sectionName: https
+        # login v2 UI — Actions v2와의 세대 정렬(ADR-0030 Consequences).
+        login:
+          enabled: true
+          # 키쌍 자체 생성은 ArgoCD(helm template 렌더)에서 sync마다 회전한다
+          # — cert-manager가 만든 키쌍을 주입한다(login-service-key.yaml).
+          loginServiceKeySecretName: zitadel-login-service-key
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          gateway:
+            httpRoute:
+              enabled: true
+              parentRefs:
+                - name: careerhub-nginx-gateway
+                  sectionName: https
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
