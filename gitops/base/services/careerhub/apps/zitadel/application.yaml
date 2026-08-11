@@ -69,6 +69,14 @@ spec:
                 key: password
         nodeSelector:
           kubernetes.io/arch: arm64
+        # NGF는 HTTPRoute 백엔드로 h2c/http2 프록시를 지원하지 않는다 —
+        # 차트 기본 appProtocol(kubernetes.io/h2c)이면 route가
+        # UnsupportedProtocol로 거부된다(실측: gateway가 500). Zitadel의
+        # h2c 서버는 HTTP/1.1도 받으므로 콘솔·OIDC·login은 http로 충분하다.
+        # 외부 gRPC가 필요해지면 GRPCRoute가 별도 경로다.
+        service:
+          protocol: http
+          appProtocol: kubernetes.io/http
         # 클러스터 첫 대형 requests — BestEffort인 기존 워크로드보다 eviction
         # 순위가 뒤로 가, 메모리 압박 시 IdP가 먼저 죽지 않는다.
         resources:
