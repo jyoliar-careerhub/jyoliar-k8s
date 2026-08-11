@@ -41,12 +41,28 @@ spec:
                   Username: zitadel
                   SSL:
                     Mode: disable
-        # DB role·database는 CNPG가 선공급한다(managed role + Database CRD).
-        # 슈퍼유저 자격이 필요한 init 단계는 그래서 필요 없다.
+                # init(zitadel 단계)의 admin 경로도 같은 zitadel role이다.
+                # DB 소유자라 스키마 생성이 가능하고, 진짜 슈퍼유저가 필요한
+                # 단계(database/user 생성)는 이 job이 돌리지 않는다.
+                Admin:
+                  Username: zitadel
+                  ExistingDatabase: zitadel
+                  SSL:
+                    Mode: disable
+        # database·user 생성은 CNPG가 선공급(managed role + Database CRD)
+        # 하므로 건너뛰고, 'init zitadel' 단계만 돌린다 — 스키마·기반
+        # 테이블(eventstore.events2 등)을 만드는 단계로, setup이 그 존재를
+        # 전제한다(전체 비활성은 setup이 42P01로 죽는다 — 실측).
         initJob:
-          enabled: false
+          enabled: true
+          command: zitadel
         env:
           - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zitadel-pg-password
+                key: password
+          - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: zitadel-pg-password
