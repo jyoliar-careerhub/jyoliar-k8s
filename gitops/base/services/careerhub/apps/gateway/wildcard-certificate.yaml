@@ -1,17 +1,20 @@
+# 이 gateway가 실제로 서빙하는 것은 careerhub 영역뿐이다 — cert 범위를
+# 영역에 맞춘다(mg의 wildcard-mg-tls와 동형). 이전의 wildcard-jyoliar-tls
+# (*.jyo-liar.com 전역)는 용도 대비 과대했다.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: wildcard-jyoliar-tls
+  name: wildcard-careerhub-tls
 spec:
-  secretName: wildcard-jyoliar-tls
+  secretName: wildcard-careerhub-tls
   issuerRef:
     name: letsencrypt-dns
     kind: ClusterIssuer
   dnsNames:
-    - "*.jyo-liar.com"
-    - "jyo-liar.com"
-    # 와일드카드는 한 레이블만 커버한다 — 2단 네임스페이스(신규 공개면:
-    # Zitadel 등)는 별도 SAN이 필요하다. issuer가 DNS-01이라 1회 비용.
+    # 레거시 루트 호스트 — 와일드카드(*.careerhub)는 apex를 커버하지 않는다.
+    # 컷오버로 레거시가 소멸하면 이 줄만 걷어낸다.
+    - "careerhub.jyo-liar.com"
+    # 신규 공개면(Zitadel 등)의 2단 네임스페이스.
     - "*.careerhub.jyo-liar.com"
   duration: 2160h
   renewBefore: 360h
