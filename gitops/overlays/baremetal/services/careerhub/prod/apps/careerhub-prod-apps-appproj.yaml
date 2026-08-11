@@ -15,9 +15,11 @@ spec:
   destinations:
     - namespace: careerhub-prod
       server: https://kubernetes.default.svc
-    # zitadel app이 zitadel-helm Application 리소스를 argocd에 만든다.
-    - namespace: argocd
-      server: https://kubernetes.default.svc
+  # zitadel app이 만드는 Application/zitadel-helm이 careerhub-prod에 산다
+  # (apps-in-any-namespace) — argocd 밖의 Application이 이 project를 쓰기
+  # 위한 허용 목록.
+  sourceNamespaces:
+    - careerhub-prod
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

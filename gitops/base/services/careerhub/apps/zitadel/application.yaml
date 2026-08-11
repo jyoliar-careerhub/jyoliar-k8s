@@ -1,8 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # namespace를 명시하지 않는다 — 부모 app의 destination(환경 ns)에 착지한다.
+  # Application 이름은 ns 단위로 유일하면 되므로 환경 간 이름 충돌이 없다
+  # (apps-in-any-namespace: application.namespaces가 이미 "*"다).
   name: zitadel-helm
-  namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
