@@ -113,6 +113,20 @@ spec:
               parentRefs:
                 - name: careerhub-nginx-gateway
                   sectionName: https
+  # 차트가 렌더하는 HTTPRoute에는 Gateway API CRD 기본값(parentRefs의
+  # group/kind, backendRefs의 group/kind/weight)이 없고 API 서버가 채운다
+  # — 그대로 두면 영구 OutOfSync(실측). 차트 템플릿은 이 필드를 낼 수
+  # 없으므로 diff에서 제외한다. (손제작 route들은 필드를 git에 명시하는
+  # 방식으로 같은 문제를 피하고 있다 — httproute.yaml)
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
+        - .spec.rules[].backendRefs[].group
+        - .spec.rules[].backendRefs[].kind
+        - .spec.rules[].backendRefs[].weight
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
