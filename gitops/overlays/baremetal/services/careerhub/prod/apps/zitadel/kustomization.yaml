@@ -6,3 +6,4 @@ resources:
 
 patches:
   - path: masterkey-externalsecret-patch.yaml
+  - path: application-patch.yaml

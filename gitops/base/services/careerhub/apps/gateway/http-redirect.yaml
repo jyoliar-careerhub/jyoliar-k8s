@@ -4,8 +4,7 @@ metadata:
   name: http-to-https-redirect
 spec:
   hostnames:
-    - careerhub.jyo-liar.com
-    - id.careerhub.jyo-liar.com
+    - OVERRIDE_REQUIRED
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

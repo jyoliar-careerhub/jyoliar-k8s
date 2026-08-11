@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-careerhub-tls
+spec:
+  dnsNames:
+    # 레거시 루트 호스트 — 와일드카드(*.careerhub)는 apex를 커버하지 않는다.
+    # 컷오버로 레거시가 소멸하면 이 줄만 걷어낸다.
+    - "careerhub.jyo-liar.com"
+    # 신규 공개면(Zitadel 등)의 2단 네임스페이스.
+    - "*.careerhub.jyo-liar.com"

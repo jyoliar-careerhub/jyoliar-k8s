@@ -7,9 +7,9 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: careerhub-prod
+    namespace: OVERRIDE_REQUIRED
     server: https://kubernetes.default.svc
-  project: careerhub-prod-apps
+  project: OVERRIDE_REQUIRED
   source:
     chart: zitadel
     repoURL: https://charts.zitadel.com
@@ -21,7 +21,7 @@ spec:
           # masterkey는 SSM → ExternalSecret 경로로 주입된다(#50). 값은 git에 없다.
           masterkeySecretName: zitadel-masterkey
           configmapConfig:
-            ExternalDomain: id.careerhub.jyo-liar.com
+            ExternalDomain: OVERRIDE_REQUIRED
             ExternalPort: 443
             ExternalSecure: true
             # TLS는 gateway가 종단한다. 클러스터 내부 구간은 h2c.
@@ -66,7 +66,7 @@ spec:
               - name: careerhub-nginx-gateway
                 sectionName: https
             hostnames:
-              - id.careerhub.jyo-liar.com
+              - OVERRIDE_REQUIRED
         # login v2 UI — Actions v2와의 세대 정렬(ADR-0030 Consequences).
         login:
           enabled: true
@@ -88,7 +88,7 @@ spec:
                 - name: careerhub-nginx-gateway
                   sectionName: https
               hostnames:
-                - id.careerhub.jyo-liar.com
+                - OVERRIDE_REQUIRED
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
