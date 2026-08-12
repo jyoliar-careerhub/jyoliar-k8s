@@ -5,3 +5,17 @@ resources:
   - masterkey-externalsecret.yaml
   - login-service-key.yaml
   - application.yaml
+  - config/config-job.yaml
+  - config/config-rbac.yaml
+
+# 구성 스크립트 — 선언(zitadel-config, overlay가 생성)과 짝을 이룬다.
+# hash suffix를 끈다: Job이 PostSync hook(BeforeHookCreation)이라 sync마다
+# 재생성되어 최신 내용을 읽고, ApplicationSet이 prune: false라 suffix본이
+# 변경마다 누적되기 때문이다.
+configMapGenerator:
+  - name: zitadel-config-script
+    files:
+      - config/apply-zitadel-config.sh
+      - config/apply_zitadel_config.py
+generatorOptions:
+  disableNameSuffixHash: true

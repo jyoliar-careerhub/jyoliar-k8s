@@ -25,6 +25,10 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            # 발급 훅 전용 표면(spec/issuance-hook) — 운영 REST와 포트를 가른다.
+            # 접근 통제(NetworkPolicy)는 이 티켓 범위 밖으로 보류(#55 코멘트 예정).
+            - name: issuance-hook
+              containerPort: 8081
           env:
             - name: RUN_MODE
               value: "app"
@@ -32,6 +36,9 @@ spec:
               value: "8080"
             - name: MAILER_GRPC_PORT
               value: "50051"
+            # 기동 필수값(기본값 없음) — v0.1.0 이전 이미지는 이 env를 모른 채 무시한다.
+            - name: ISSUANCE_HOOK_PORT
+              value: "8081"
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:

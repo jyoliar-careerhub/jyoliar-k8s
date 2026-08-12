@@ -1,0 +1,59 @@
+# Zitadel 내부 구성의 원하는 상태 — careerhub-prod.
+# 구성 Job(base config/apply-zitadel-config.sh)이 이 선언을 관리 API로 수렴시킨다.
+# {$env: NAME}은 Job env 값으로 치환된다 — 시크릿이 git에 실리지 않는 배선.
+
+idps:
+  # 새 브로커 추가 = 여기 항목 추가 (+ 시크릿이 필요하면 Job env 쌍 배선).
+  # type이 admin API 경로(/admin/v1/idps/<type>)가 된다 — Naver(추후 예정)는
+  # generic_oidc로 붙는다(ADR-0030). 스크립트에 제공자 전용 분기는 없다.
+  - name: Google
+    type: google
+    addToLoginPolicy: true
+    config:
+      clientId: {$env: IDP_GOOGLE_CLIENT_ID}
+      clientSecret: {$env: IDP_GOOGLE_CLIENT_SECRET}
+      scopes: [openid, profile, email]
+      providerOptions:
+        isLinkingAllowed: true
+        isCreationAllowed: true
+        isAutoCreation: true
+        isAutoUpdate: true
+        autoLinking: AUTO_LINKING_OPTION_EMAIL
+
+project:
+  name: careerhub
+  apps:
+    - name: careerhub-web
+      oidc:
+        # redirect URI는 잠정값이다 — 프론트 OIDC 통합은 이 티켓 관할 밖
+        # (#55 사람 판정, 2026-08-12). 확정 시 이 선언만 고치면 된다.
+        redirectUris:
+          - https://careerhub.jyo-liar.com/auth/callback
+        postLogoutRedirectUris:
+          - https://careerhub.jyo-liar.com/
+        responseTypes: [OIDC_RESPONSE_TYPE_CODE]
+        grantTypes:
+          - OIDC_GRANT_TYPE_AUTHORIZATION_CODE
+          - OIDC_GRANT_TYPE_REFRESH_TOKEN
+        appType: OIDC_APP_TYPE_USER_AGENT
+        authMethodType: OIDC_AUTH_METHOD_TYPE_NONE
+        # JWT 액세스 토큰 — 로컬 검증(ADR-0029)·발급 시점 주입(ADR-0031)의 전제.
+        accessTokenType: OIDC_TOKEN_TYPE_JWT
+
+actions:
+  targets:
+    - name: auth-service-claims
+      # 같은 ns의 auth-service 발급 훅 표면(spec/issuance-hook) — ns 무관 상대참조.
+      endpoint: http://auth-service:8081/claims
+      timeout: 5s
+      restCall:
+        # fail-closed (#55 D1, 사람 판정 2026-08-12): 빈 클레임 토큰은 앱에서
+        # 어차피 정상 동작하지 않고, 조용한 실패는 탐지가 어렵다 — auth-service
+        # 장애를 로그인 실패로 드러낸다. function execution은 인스턴스 전역
+        # 발화라 타 프로젝트 로그인도 함께 묶인다는 것을 알고 켠 스위치다.
+        interruptOnError: true
+  executions:
+    - function: preaccesstoken
+      targets: [auth-service-claims]
+    - function: preuserinfo
+      targets: [auth-service-claims]

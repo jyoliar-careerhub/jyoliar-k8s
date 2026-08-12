@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zitadel-config-apply
+spec:
+  template:
+    spec:
+      containers:
+        - name: apply
+          env:
+            # chart의 ExternalDomain(application-patch.yaml)과 같은 값이어야 한다.
+            - name: ZITADEL_EXTERNAL_DOMAIN
+              value: id.careerhub.jyo-liar.com
