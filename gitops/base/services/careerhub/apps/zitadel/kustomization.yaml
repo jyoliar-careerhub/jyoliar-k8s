@@ -16,5 +16,6 @@ configMapGenerator:
   - name: zitadel-config-script
     files:
       - config/apply-zitadel-config.sh
+      - config/apply_zitadel_config.py
 generatorOptions:
   disableNameSuffixHash: true
