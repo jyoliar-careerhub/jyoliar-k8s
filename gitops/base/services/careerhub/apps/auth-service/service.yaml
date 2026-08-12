@@ -10,5 +10,9 @@ spec:
     - name: http
       port: 80
       targetPort: http
+    # Zitadel Actions target이 호출하는 발급 훅 표면 — 클러스터 내부 전용
+    - name: issuance-hook
+      port: 8081
+      targetPort: issuance-hook
   selector:
     app: auth-service
