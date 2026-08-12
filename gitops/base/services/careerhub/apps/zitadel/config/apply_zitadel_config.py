@@ -173,7 +173,15 @@ class ZitadelApi:
         except urllib.error.HTTPError as e:
             detail = e.read().decode(errors="replace")
             raise RuntimeError(f"{method} {path} → HTTP {e.code}: {detail}") from e
-        return json.loads(payload) if payload else {}
+        if not payload:
+            return {}
+        try:
+            return json.loads(payload)
+        except json.JSONDecodeError:
+            # /debug/healthz 등 일부 표면은 200에 플레인 텍스트를 준다(실측:
+            # 첫 배포에서 Job이 여기서 죽었다) — 소비하는 응답은 전부 JSON이므로
+            # 비-JSON 200은 빈 객체로 취급한다.
+            return {}
 
     def wait_ready(self, attempts: int = 60, interval: int = 5) -> None:
         """PostSync hook는 Zitadel 본체의 ready와 동기화되지 않는다 — 직접 기다린다."""
