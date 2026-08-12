@@ -172,6 +172,11 @@ class ZitadelApi:
                 payload = resp.read()
         except urllib.error.HTTPError as e:
             detail = e.read().decode(errors="replace")
+            if e.code == 400 and self._is_no_change(detail):
+                # v1 계열 update API는 무변경 갱신을 400 "No changes"(gRPC
+                # code 9)로 거부한다(실측: UpdateOIDCAppConfig, COMMAND-1m88i).
+                # 선언과 현행이 이미 같다는 뜻이므로 수렴 성공으로 취급한다.
+                return {}
             raise RuntimeError(f"{method} {path} → HTTP {e.code}: {detail}") from e
         if not payload:
             return {}
@@ -182,6 +187,14 @@ class ZitadelApi:
             # 첫 배포에서 Job이 여기서 죽었다) — 소비하는 응답은 전부 JSON이므로
             # 비-JSON 200은 빈 객체로 취급한다.
             return {}
+
+    @staticmethod
+    def _is_no_change(detail: str) -> bool:
+        try:
+            parsed = json.loads(detail)
+        except json.JSONDecodeError:
+            return False
+        return parsed.get("code") == 9 and str(parsed.get("message", "")).startswith("No changes")
 
     def wait_ready(self, attempts: int = 60, interval: int = 5) -> None:
         """PostSync hook는 Zitadel 본체의 ready와 동기화되지 않는다 — 직접 기다린다."""
