@@ -25,15 +25,19 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from typing import Any, NoReturn
 
 import yaml
 
+# 관리 API가 주고받는 JSON 객체 — 임의 깊이의 트리라 값은 Any로 둔다
+JsonObj = dict[str, Any]
 
-def log(msg):
+
+def log(msg: str) -> None:
     print(f"[apply-zitadel-config] {msg}", flush=True)
 
 
-def fail(msg):
+def fail(msg: str) -> NoReturn:
     log(f"ERROR: {msg}")
     sys.exit(1)
 
@@ -42,7 +46,7 @@ class ZitadelApi:
     """서비스 직결 호출 — Host로 인스턴스를 판별시키고, ExternalSecure=true
     환경에서 TLS 종단 프록시 뒤인 것처럼 보이게 한다."""
 
-    def __init__(self, base_url, external_domain, pat):
+    def __init__(self, base_url: str, external_domain: str, pat: str) -> None:
         self.base_url = base_url.rstrip("/")
         self.headers = {
             "Authorization": f"Bearer {pat}",
@@ -51,7 +55,7 @@ class ZitadelApi:
             "X-Forwarded-Proto": "https",
         }
 
-    def call(self, method, path, body=None):
+    def call(self, method: str, path: str, body: JsonObj | None = None) -> JsonObj:
         data = json.dumps(body).encode() if body is not None else None
         req = urllib.request.Request(
             self.base_url + path, data=data, method=method, headers=self.headers
@@ -65,7 +69,7 @@ class ZitadelApi:
         return json.loads(payload) if payload else {}
 
 
-def resolve_env(node):
+def resolve_env(node: Any) -> Any:
     """{"$env": "NAME"}을 env 값으로 치환 — 미주입은 즉시 실패."""
     if isinstance(node, dict):
         if set(node.keys()) == {"$env"}:
@@ -79,7 +83,7 @@ def resolve_env(node):
     return node
 
 
-def wait_ready(api, attempts=60, interval=5):
+def wait_ready(api: ZitadelApi, attempts: int = 60, interval: int = 5) -> None:
     """PostSync hook는 Zitadel 본체의 ready와 동기화되지 않는다 — 직접 기다린다."""
     for i in range(attempts):
         try:
@@ -92,7 +96,7 @@ def wait_ready(api, attempts=60, interval=5):
             time.sleep(interval)
 
 
-def ensure_idps(api, idps):
+def ensure_idps(api: ZitadelApi, idps: list[JsonObj]) -> None:
     for idp in idps:
         name, idp_type = idp["name"], idp["type"]
         payload = {"name": name, **idp["config"]}
@@ -120,7 +124,7 @@ def ensure_idps(api, idps):
                 log(f"로그인 정책에 IdP 활성화: {name}")
 
 
-def ensure_project(api, project):
+def ensure_project(api: ZitadelApi, project: JsonObj) -> None:
     pname = project["name"]
     found = api.call(
         "POST", "/management/v1/projects/_search",
@@ -151,8 +155,8 @@ def ensure_project(api, project):
             log(f"OIDC 앱 구성 갱신: {aname}")
 
 
-def ensure_actions(api, actions):
-    target_ids = {}
+def ensure_actions(api: ZitadelApi, actions: JsonObj) -> None:
+    target_ids: dict[str, str] = {}
     for tgt in actions.get("targets") or []:
         tname = tgt["name"]
         found = api.call(
@@ -191,7 +195,7 @@ def ensure_actions(api, actions):
         log(f"Execution 설정: function={fn}")
 
 
-def main():
+def main() -> None:
     config_file = os.environ.get("CONFIG_FILE", "/config/zitadel-config.yaml")
     pat_file = os.environ.get("PAT_FILE", "/secrets/pat/pat")
     with open(pat_file) as f:
