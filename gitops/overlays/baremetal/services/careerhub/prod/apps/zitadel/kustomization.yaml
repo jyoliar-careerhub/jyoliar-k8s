@@ -7,3 +7,13 @@ resources:
 patches:
   - path: masterkey-externalsecret-patch.yaml
   - path: application-patch.yaml
+  - path: config-job-patch.yaml
+
+# Zitadel 내부 구성의 원하는 상태 — 환경별 값(redirect URI 등)이라 overlay 소유.
+# hash suffix를 끄는 이유는 base kustomization의 주석과 같다.
+configMapGenerator:
+  - name: zitadel-config
+    files:
+      - zitadel-config.yaml
+generatorOptions:
+  disableNameSuffixHash: true

@@ -49,6 +49,23 @@ spec:
                   ExistingDatabase: zitadel
                   SSL:
                     Mode: disable
+            # 구성 Job(config/)의 자격증명 원천 — machine user 부트스트랩.
+            # setup Job 사이드카가 키·PAT를 k8s Secret(iam-admin ·
+            # iam-admin-pat)으로 쓴다. 값은 chart 10.0.4 기본과 동일하지만
+            # Requirements(#55)가 이 경로를 못 박으므로 git에 명시한다.
+            # FirstInstance는 인스턴스 최초 생성 시에만 적용된다 — 재구축
+            # 시에도 이 선언이 있어야 같은 Secret이 다시 나온다.
+            FirstInstance:
+              Org:
+                Machine:
+                  Machine:
+                    Username: iam-admin
+                    Name: Automatically Initialized IAM Admin
+                  MachineKey:
+                    ExpirationDate: '2029-01-01T00:00:00Z'
+                    Type: 1
+                  Pat:
+                    ExpirationDate: '2029-01-01T00:00:00Z'
         # database·user 생성은 CNPG가 선공급(managed role + Database CRD)
         # 하므로 건너뛰고, 'init zitadel' 단계만 돌린다 — 스키마·기반
         # 테이블(eventstore.events2 등)을 만드는 단계로, setup이 그 존재를
