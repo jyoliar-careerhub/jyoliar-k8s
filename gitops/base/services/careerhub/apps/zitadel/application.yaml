@@ -49,6 +49,13 @@ spec:
                   ExistingDatabase: zitadel
                   SSL:
                     Mode: disable
+            # SSRF 방어 목록(생성 검증·실행 dialer 공용) — 부분 수정이 안 되는
+            # 전체 교체 설정이라, Zitadel 기본값(cmd/defaults.yaml @ v4.15.3)을
+            # 그대로 두고 10.0.0.0/8 하나만 뺐다: Actions target(발급 훅)인
+            # auth-service가 그 대역(ClusterIP)에 살아서다(실측: DeniedURL
+            # COMMAND-NcJUKo). 나머지(루프백·메타데이터·LAN·IPv6) 방어는 유지.
+            HTTPClient:
+              DenyList: [localhost, 0.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 198.18.0.0/15, "::/128", "::1/128", "fc00::/7", "fe80::/10"]
             # 구성 Job(config/)의 자격증명 원천 — machine user 부트스트랩.
             # setup Job 사이드카가 키·PAT를 k8s Secret(iam-admin ·
             # iam-admin-pat)으로 쓴다. 값은 chart 10.0.4 기본과 동일하지만
