@@ -25,12 +25,21 @@ project:
   apps:
     - name: careerhub-web
       oidc:
-        # redirect URI는 잠정값이다 — 프론트 OIDC 통합은 이 티켓 관할 밖
-        # (#55 사람 판정, 2026-08-12). 확정 시 이 선언만 고치면 된다.
+        # redirect URI는 여전히 잠정값이다 — careerhub-web의 최종 호스트가 미확정이고
+        # (careerhub/260810_2252 status: active), 확정되면 이 선언만 고치면 된다.
+        #
+        # localhost 항목은 **검증 전용**이다 (ops-workflow#59): careerhub-web은 아직
+        # 어디에도 배포돼 있지 않아, 로그인 완주·토큰 크기 실측을 확인할 곳이 개발기뿐이다.
+        # 제거 조건 — careerhub-web이 실제 호스트에 서고 그 호스트로 실증이 되는 시점.
         redirectUris:
           - https://careerhub.jyo-liar.com/auth/callback
+          - http://localhost:3000/auth/callback
         postLogoutRedirectUris:
           - https://careerhub.jyo-liar.com/
+          - http://localhost:3000/
+        # devMode — 위 http·localhost를 Zitadel이 받게 하는 스위치다. 규격 검사를 느슨하게
+        # 하므로 이 앱에 한정되고, localhost 항목과 수명을 같이한다(함께 지운다).
+        devMode: true
         responseTypes: [OIDC_RESPONSE_TYPE_CODE]
         grantTypes:
           - OIDC_GRANT_TYPE_AUTHORIZATION_CODE
