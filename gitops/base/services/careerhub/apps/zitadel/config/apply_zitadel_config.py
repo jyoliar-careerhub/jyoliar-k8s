@@ -15,6 +15,11 @@ generic_oidc)는 선언에 항목을 더하면 등록된다. 제공자 전용 �
 선언 속 {"$env": "NAME"}은 Job env 값으로 치환된다 — 시크릿(IdP client secret
 등)이 git에 실리지 않게 하는 배선이다.
 
+앱이 credentialsSecret을 선언하면 수렴 후 그 앱의 client_id(secret 인증
+앱이라면 client_secret도)를 CREDS_OUT_FILE(JSON)로 내보낸다 — k8s Secret
+반영은 쉘 몫이다. client_secret은 생성·재발급 응답에 1회만 노출되므로 이
+시점 포착이 유일한 자동화 경로다(ensure_project docstring 참조).
+
 의존: PyYAML — alpine/k8s 이미지에 awscli v1의 의존으로 실재한다(공표 도구
 목록 밖이므로 이미지 태그 인상 시 존재를 재확인할 것. entrypoint가 fail-fast
 검사를 한다).
@@ -82,14 +87,36 @@ class IdpSpec:
         )
 
 
+# client_secret이 발급되는 인증 방식 — NONE(public)·PRIVATE_KEY_JWT에는 secret이
+# 아예 존재하지 않는다.
+SECRET_AUTH_METHODS = {"OIDC_AUTH_METHOD_TYPE_BASIC", "OIDC_AUTH_METHOD_TYPE_POST"}
+
+
 @dataclass(frozen=True)
 class AppSpec:
     name: str
     oidc: JsonObj  # AddOIDCApp·UpdateOIDCAppConfig 요청 본문
+    credentials_secret: str | None  # 자격증명을 기록할 k8s Secret 이름(옵트인)
 
     @classmethod
     def parse(cls, node: JsonObj) -> "AppSpec":
-        return cls(name=node["name"], oidc=node["oidc"])
+        return cls(
+            name=node["name"],
+            oidc=node["oidc"],
+            credentials_secret=node.get("credentialsSecret"),
+        )
+
+    def issues_client_secret(self) -> bool:
+        return self.oidc.get("authMethodType") in SECRET_AUTH_METHODS
+
+
+@dataclass(frozen=True)
+class AppCredentials:
+    """구성 Job이 k8s Secret으로 넘길 앱 자격증명 — kubectl 반영은 쉘 몫."""
+
+    secret_name: str
+    client_id: str
+    client_secret: str | None  # 이번 실행에서 새로 발급된 경우에만 — 기존 값 보존은 쉘의 병합 patch가 한다
 
 
 @dataclass(frozen=True)
@@ -137,12 +164,20 @@ class ZitadelConfig:
         with open(path) as f:
             raw = resolve_env(yaml.safe_load(f))
         actions = raw.get("actions") or {}
-        return cls(
+        cfg = cls(
             idps=[IdpSpec.parse(n) for n in raw.get("idps") or []],
             project=ProjectSpec.parse(raw["project"]) if raw.get("project") else None,
             targets=[TargetSpec.parse(n) for n in actions.get("targets") or []],
             executions=[ExecutionSpec.parse(n) for n in actions.get("executions") or []],
         )
+        names = cfg.credentials_secret_names()
+        if len(names) != len(set(names)):
+            fail(f"credentialsSecret 이름 중복: {sorted(names)}")
+        return cfg
+
+    def credentials_secret_names(self) -> list[str]:
+        apps = self.project.apps if self.project else []
+        return [a.credentials_secret for a in apps if a.credentials_secret]
 
 
 # ------------------------------------------------------------------- 수렴
@@ -234,7 +269,18 @@ class ZitadelApi:
                     self._call("POST", "/admin/v1/policies/login/idps", {"idpId": idp_id})
                     log(f"로그인 정책에 IdP 활성화: {idp.name}")
 
-    def ensure_project(self, project: ProjectSpec) -> None:
+    def ensure_project(
+        self, project: ProjectSpec, existing_secret_keys: dict[str, list[str]]
+    ) -> list[AppCredentials]:
+        """수렴 후, credentialsSecret을 선언한 앱의 자격증명을 돌려준다.
+
+        client_secret은 생성·재발급 응답에 1회만 노출되고 조회 API가 없다 —
+        그래서 이 시점의 포착이 k8s Secret으로 넘길 유일한 경로다.
+        existing_secret_keys(k8s Secret별 보유 키 목록, 쉘이 수집)는 재발급
+        판단 재료다: secret 인증 앱인데 k8s 쪽에 client_secret이 없으면(최초
+        수렴 이후 Secret 유실·회전 삭제) _generate_client_secret로 재발급한다
+        — 기존 secret은 그 즉시 무효화된다.
+        """
         found = self._call(
             "POST", "/management/v1/projects/_search",
             {"queries": [{"nameQuery": {
@@ -246,6 +292,7 @@ class ZitadelApi:
             pid = self._call("POST", "/management/v1/projects", {"name": project.name})["id"]
             log(f"프로젝트 생성: {project.name} → {pid}")
 
+        credentials: list[AppCredentials] = []
         for app in project.apps:
             found = self._call(
                 "POST", f"/management/v1/projects/{pid}/apps/_search",
@@ -253,11 +300,16 @@ class ZitadelApi:
                     "name": app.name, "method": "TEXT_QUERY_METHOD_EQUALS"}}]},
             )
             results = found.get("result") or []
+            client_id: str | None = None
+            client_secret: str | None = None
             if not results:
-                app_id = self._call(
+                created = self._call(
                     "POST", f"/management/v1/projects/{pid}/apps/oidc",
                     {"name": app.name, **app.oidc},
-                )["appId"]
+                )
+                app_id = created["appId"]
+                client_id = created.get("clientId")
+                client_secret = created.get("clientSecret")
                 log(f"OIDC 앱 생성: {app.name} → {app_id}")
             else:
                 app_id = results[0]["id"]
@@ -265,7 +317,30 @@ class ZitadelApi:
                     "PUT", f"/management/v1/projects/{pid}/apps/{app_id}/oidc_config",
                     app.oidc,
                 )
+                client_id = (results[0].get("oidcConfig") or {}).get("clientId")
                 log(f"OIDC 앱 구성 갱신: {app.name}")
+                if (
+                    app.credentials_secret
+                    and app.issues_client_secret()
+                    and "client_secret" not in existing_secret_keys.get(app.credentials_secret, [])
+                ):
+                    client_secret = self._call(
+                        "POST",
+                        f"/management/v1/projects/{pid}/apps/{app_id}"
+                        "/oidc_config/_generate_client_secret",
+                        {},
+                    )["clientSecret"]
+                    log(f"client_secret 재발급: {app.name} (k8s Secret에 없음 — 기존 secret은 무효화됨)")
+
+            if app.credentials_secret:
+                if not client_id:
+                    fail(f"앱 {app.name}의 clientId를 응답에서 얻지 못했다")
+                credentials.append(AppCredentials(
+                    secret_name=app.credentials_secret,
+                    client_id=client_id,
+                    client_secret=client_secret or None,
+                ))
+        return credentials
 
     def ensure_targets(self, targets: list[TargetSpec]) -> dict[str, str]:
         """선언 name → Zitadel target id 맵을 돌려준다(execution 참조 해석용)."""
@@ -311,12 +386,42 @@ class ZitadelApi:
             log(f"Execution 설정: function={exe.function}")
 
 
+def load_existing_secret_keys() -> dict[str, list[str]]:
+    """쉘이 수집한 k8s Secret별 보유 키 목록 — 미존재 Secret은 항목이 없다."""
+    path = os.environ.get("CREDS_STATE_FILE")
+    if not path or not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
+def write_credentials(credentials: list[AppCredentials]) -> None:
+    path = os.environ.get("CREDS_OUT_FILE")
+    if not path:
+        return
+    payload: dict[str, dict[str, str]] = {}
+    for cred in credentials:
+        data = {"client_id": cred.client_id}
+        if cred.client_secret:
+            data["client_secret"] = cred.client_secret
+        payload[cred.secret_name] = data
+    with open(path, "w") as f:
+        json.dump(payload, f)
+
+
 def main() -> None:
     config_file = os.environ.get("CONFIG_FILE", "/config/zitadel-config.yaml")
+    cfg = ZitadelConfig.load(config_file)
+
+    if "--list-credentials-secrets" in sys.argv[1:]:
+        # 쉘의 재실행 skip 판단·기존 Secret 상태 수집용 — API를 부르지 않는다.
+        for name in cfg.credentials_secret_names():
+            print(name)
+        return
+
     pat_file = os.environ.get("PAT_FILE", "/secrets/pat/pat")
     with open(pat_file) as f:
         pat = f.read().strip()
-    cfg = ZitadelConfig.load(config_file)
 
     api = ZitadelApi(
         os.environ["ZITADEL_URL"], os.environ["ZITADEL_EXTERNAL_DOMAIN"], pat
@@ -324,7 +429,8 @@ def main() -> None:
     api.wait_ready()
     api.ensure_idps(cfg.idps)
     if cfg.project:
-        api.ensure_project(cfg.project)
+        credentials = api.ensure_project(cfg.project, load_existing_secret_keys())
+        write_credentials(credentials)
     target_ids = api.ensure_targets(cfg.targets)
     api.ensure_executions(cfg.executions, target_ids)
     log("수렴 완료")

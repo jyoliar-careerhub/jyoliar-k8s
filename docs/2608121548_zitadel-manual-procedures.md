@@ -1,7 +1,7 @@
 # Zitadel 초기 구성 — 수동 잔여 항목 절차 기록
 
 **작성일**: 2026-08-12 15:48 (KST)
-**최종 수정일**: 2026-08-12 17:35 (KST)
+**최종 수정일**: 2026-08-14 16:02 (KST)
 **대상 서비스**: zitadel, auth-service
 
 ---
@@ -63,3 +63,18 @@ Google sub는 원장의 `authorized_id`(`SELECT email, authorized_id FROM "user"
 
 Zitadel DB를 재초기화하면 이 절차도 되살아난다 — 사용자 원장은 Zitadel DB 안이다.
 (백업 경로: PostgreSQL 덤프 + masterkey 보존, ADR-0030 Consequences.)
+
+## 3. 앱 자격증명 Secret — 자동 관리와 회전 절차 (참고)
+
+앱 자격증명(client_id·client_secret)의 k8s Secret 기록은 **수동 항목이 아니다** — 선언(`zitadel-config.yaml`)의 `credentialsSecret`을 구성 Job이 자동으로 채운다.
+여기 적는 것은 유출·회전 시의 수동 트리거뿐이다.
+
+- client_id는 비밀이 아니고 언제든 관리 API로 재조회 가능하다. client_secret(secret 인증 앱에만 존재 — 현행 careerhub-web은 public client라 없음)은 생성·재발급 응답에 **1회만 노출**되고 조회 API가 없다 — 그래서 Job이 그 시점에 포착해 Secret으로 남긴다.
+- **회전(유출 대응)**: 해당 k8s Secret을 삭제하고 Job을 재실행하면 된다 — Job은 선언된 자격증명 Secret이 없으면 checksum 무변경이어도 재수렴하고, secret 인증 앱이면 `_generate_client_secret`로 재발급해(기존 secret 즉시 무효화) 새 Secret을 만든다.
+
+```bash
+kubectl delete secret zitadel-app-careerhub-web -n careerhub-prod
+# 그다음 ArgoCD에서 zitadel app을 sync(PostSync hook Job 재실행) — 또는 다음 배포를 기다린다.
+```
+
+- Secret 삭제 없이 재발급만 하고 싶다면 관리 API를 직접 불러도 되지만(회전 코멘트의 PAT 절차 참조), 그 경우 응답의 새 secret을 k8s Secret에 손으로 반영해야 한다 — 삭제+재실행 경로가 더 안전하다.
