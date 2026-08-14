@@ -3,6 +3,7 @@
 #   - 이 쉘: 재실행 최적화(checksum 무변경 skip)·state ConfigMap 기록·앱 자격증명
 #     Secret 반영. kubectl 담당.
 #   - apply_zitadel_config.py: Zitadel API와의 수렴 로직 전부. 헤더 주석 참조.
+# 회귀 스모크: tests/smoke_test.py — 이 파일이나 py를 고치면 돌려라(tests/README.md).
 set -euo pipefail
 
 : "${ZITADEL_URL:?in-cluster Zitadel URL (예: http://zitadel:8080)}"
