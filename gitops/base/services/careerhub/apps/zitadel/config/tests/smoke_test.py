@@ -23,6 +23,7 @@ ENTRYPOINT: Path = CONFIG_DIR / "apply-zitadel-config.sh"
 PY_SCRIPT: Path = CONFIG_DIR / "apply_zitadel_config.py"
 
 SECRET_NAME = "zitadel-app-careerhub-web"
+MANAGED_BY = "zitadel-config-apply"  # 실존 Job 이름 — Job 산출물의 소유 표식
 
 # kubectl shim — 임시 state 디렉터리(KSTATE)가 가짜 클러스터 상태다.
 #   get: state 파일이 있으면 성공(-o json은 내용, jsonpath는 checksum), 없으면 exit 1
@@ -169,6 +170,12 @@ class RunResult:
         log = self.state / "calls.log"
         return log.read_text() if log.exists() else ""
 
+    def patch_payload(self, secret_name: str) -> dict[str, Any]:
+        prefix = f"patch secret {secret_name} "
+        lines = [l for l in self.calls_log().splitlines() if l.startswith(prefix)]
+        assert len(lines) == 1, f"patch 호출 수: {lines or self.calls_log()}"
+        return json.loads(lines[0][len(prefix):])
+
     def api_calls(self, path_fragment: str) -> list[Call]:
         return [c for c in self.calls if path_fragment in c[1]]
 
@@ -237,6 +244,8 @@ def scenario_create() -> None:
     r.check_clean("생성")
     sec = json.loads((r.state / f"secret-{SECRET_NAME}.json").read_text())
     assert sec["stringData"] == {"client_id": "cid-123"}, sec
+    assert sec["metadata"]["labels"]["app.kubernetes.io/managed-by"] == MANAGED_BY, sec
+    assert "provenance" in json.dumps(sec["metadata"].get("annotations", {})), sec
     assert f"apply secret {SECRET_NAME}" in r.calls_log(), r.calls_log()
     assert not r.api_calls("_generate_client_secret")
     tgt = r.api_calls("/v2/actions/targets")[1]  # [0]은 search
@@ -249,8 +258,9 @@ def scenario_update() -> None:
     r = run_script("fixture-config.yaml", UPDATE_ROUTES,
                    seeds={f"secret-{SECRET_NAME}.json": EXISTING_SECRET})
     r.check_clean("갱신")
-    want = f'patch secret {SECRET_NAME} {{"stringData":{{"client_id":"cid-123"}}}}'
-    assert want in r.calls_log(), r.calls_log()
+    payload = r.patch_payload(SECRET_NAME)
+    assert payload["stringData"] == {"client_id": "cid-123"}, payload
+    assert payload["metadata"]["labels"]["app.kubernetes.io/managed-by"] == MANAGED_BY, payload
     assert not r.api_calls("_generate_client_secret"), "NONE 앱에 재발급 호출"
 
 
@@ -259,9 +269,9 @@ def scenario_regen() -> None:
                    seeds={f"secret-{SECRET_NAME}.json": EXISTING_SECRET})
     r.check_clean("재발급")
     assert len(r.api_calls("_generate_client_secret")) == 1
-    want = (f'patch secret {SECRET_NAME} '
-            '{"stringData":{"client_id":"cid-123","client_secret":"new-sec-456"}}')
-    assert want in r.calls_log(), r.calls_log()
+    payload = r.patch_payload(SECRET_NAME)
+    assert payload["stringData"] == {"client_id": "cid-123",
+                                     "client_secret": "new-sec-456"}, payload
 
 
 def scenario_skip_and_rotate() -> None:

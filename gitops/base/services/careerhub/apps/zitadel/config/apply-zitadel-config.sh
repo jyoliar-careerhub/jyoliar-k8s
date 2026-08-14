@@ -17,6 +17,10 @@ export CREDS_OUT_FILE=${CREDS_OUT_FILE:-/tmp/zitadel-app-creds-out.json}
 
 log() { echo "[apply-zitadel-config] $*"; }
 
+# Job 산출물(자격증명 Secret·state CM)의 소유 표식 — ArgoCD 비추적 생성물이라
+# namespace를 뒤진 사람이 정체를 읽을 수 있게 남긴다. 값은 실존 Job 이름이다.
+MANAGED_META='{"labels":{"app.kubernetes.io/managed-by":"zitadel-config-apply"},"annotations":{"careerhub.jyo-liar.com/provenance":"zitadel-config-apply Job 산출물 — 선언: zitadel-config ConfigMap · 스크립트: gitops/base/services/careerhub/apps/zitadel/config/"}}'
+
 # python·PyYAML은 alpine/k8s의 공표 도구 목록 밖(awscli v1의 의존)이다 —
 # 이미지 태그 인상으로 사라졌다면 조용한 오작동 전에 여기서 명시적으로 죽는다.
 python3 -c "import yaml" 2>/dev/null \
@@ -60,18 +64,19 @@ if [[ -s "$CREDS_OUT_FILE" ]]; then
     DATA=$(jq -c --arg n "$name" '.[$n]' "$CREDS_OUT_FILE")
     if kubectl get secret "$name" >/dev/null 2>&1; then
       kubectl patch secret "$name" \
-        -p "$(jq -nc --argjson d "$DATA" '{stringData: $d}')" >/dev/null
+        -p "$(jq -nc --argjson d "$DATA" --argjson m "$MANAGED_META" \
+              '{metadata: $m, stringData: $d}')" >/dev/null
       log "자격증명 Secret 갱신: $name"
     else
-      jq -nc --arg n "$name" --argjson d "$DATA" \
-        '{apiVersion: "v1", kind: "Secret", metadata: {name: $n}, type: "Opaque", stringData: $d}' \
+      jq -nc --arg n "$name" --argjson d "$DATA" --argjson m "$MANAGED_META" \
+        '{apiVersion: "v1", kind: "Secret", metadata: ({name: $n} + $m), type: "Opaque", stringData: $d}' \
         | kubectl apply -f - >/dev/null
       log "자격증명 Secret 생성: $name"
     fi
   done
 fi
 
-kubectl create configmap "$STATE_CONFIGMAP" \
-  --from-literal=checksum="$DESIRED_SUM" \
-  --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+jq -nc --arg n "$STATE_CONFIGMAP" --arg sum "$DESIRED_SUM" --argjson m "$MANAGED_META" \
+  '{apiVersion: "v1", kind: "ConfigMap", metadata: ({name: $n} + $m), data: {checksum: $sum}}' \
+  | kubectl apply -f - >/dev/null
 log "적용 완료 — checksum ${DESIRED_SUM:0:12} 기록"
