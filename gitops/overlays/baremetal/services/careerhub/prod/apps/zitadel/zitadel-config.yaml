@@ -24,6 +24,11 @@ project:
   name: careerhub
   apps:
     - name: careerhub-web
+      # 앱 자격증명 접점 — 구성 Job이 수렴 후 이 이름의 k8s Secret에 client_id를
+      # 기록한다(같은 ns). 소비자는 이 Secret을 참조한다. careerhub-web은 public
+      # client(authMethodType NONE)라 client_secret이 존재하지 않는다 — secret
+      # 인증(BASIC·POST) 앱이라면 client_secret 키도 함께 실린다.
+      credentialsSecret: zitadel-app-careerhub-web
       oidc:
         # redirect URI는 여전히 잠정값이다 — careerhub-web의 최종 호스트가 미확정이고
         # (careerhub/260810_2252 status: active), 확정되면 이 선언만 고치면 된다.

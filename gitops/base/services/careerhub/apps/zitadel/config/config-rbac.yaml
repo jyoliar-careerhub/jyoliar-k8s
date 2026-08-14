@@ -1,5 +1,5 @@
-# 구성 Job의 재실행 최적화 상태(zitadel-config-state ConfigMap)를 읽고 쓰기
-# 위한 최소 권한 — Secret 접근은 없다(자격증명은 볼륨 마운트로 받는다).
+# 구성 Job의 k8s 쪽 권한 — 재실행 최적화 상태(zitadel-config-state ConfigMap)와
+# 앱 자격증명 Secret(선언의 credentialsSecret) 기록용.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -12,6 +12,15 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: [configmaps]
+    verbs: [get, create, patch]
+  # 앱 자격증명 Secret 기록 — client_secret이 생성·재발급 응답에 1회만 노출되어
+  # Job 시점 포착이 유일한 자동화 경로다(apply_zitadel_config.py 헤더).
+  # 이름 한정(resourceNames)을 두지 않는 이유: create는 API상 이름 한정이
+  # 불가능한 동사이고, get·patch의 대상 이름은 overlay 선언에 있어 base Role에
+  # 고정할 수 없다. list·watch·delete는 주지 않는다 — Job은 어차피 IAM_OWNER
+  # PAT를 마운트로 쥐고 있어, 이 Role이 방어선의 본체는 아니다.
+  - apiGroups: [""]
+    resources: [secrets]
     verbs: [get, create, patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

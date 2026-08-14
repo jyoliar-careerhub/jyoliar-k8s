@@ -1,0 +1,36 @@
+# smoke_test.py 전용 fixture — secret 인증(BASIC) 앱 변형. client_secret 재발급
+# 경로 검증용. fixture-config.yaml과 appType·authMethodType만 다르다.
+idps:
+  - name: Google
+    type: google
+    addToLoginPolicy: true
+    config:
+      clientId: {$env: IDP_GOOGLE_CLIENT_ID}
+      clientSecret: {$env: IDP_GOOGLE_CLIENT_SECRET}
+      scopes: [openid, profile, email]
+
+project:
+  name: careerhub
+  apps:
+    - name: careerhub-web
+      credentialsSecret: zitadel-app-careerhub-web
+      oidc:
+        redirectUris: [https://careerhub.example.test/auth/callback]
+        responseTypes: [OIDC_RESPONSE_TYPE_CODE]
+        grantTypes: [OIDC_GRANT_TYPE_AUTHORIZATION_CODE]
+        appType: OIDC_APP_TYPE_WEB
+        authMethodType: OIDC_AUTH_METHOD_TYPE_BASIC
+        accessTokenType: OIDC_TOKEN_TYPE_JWT
+
+actions:
+  targets:
+    - name: auth-service-claims
+      endpoint: http://auth-service:8081/claims
+      timeout: 5s
+      restCall:
+        interruptOnError: true
+  executions:
+    - function: preaccesstoken
+      targets: [auth-service-claims]
+    - function: preuserinfo
+      targets: [auth-service-claims]

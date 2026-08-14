@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 구성 Job entrypoint — 역할 분담:
-#   - 이 쉘: 재실행 최적화(checksum 무변경 skip)와 state ConfigMap 기록. kubectl 담당.
+#   - 이 쉘: 재실행 최적화(checksum 무변경 skip)·state ConfigMap 기록·앱 자격증명
+#     Secret 반영. kubectl 담당.
 #   - apply_zitadel_config.py: Zitadel API와의 수렴 로직 전부. 헤더 주석 참조.
+# 회귀 스모크: tests/smoke_test.py — 이 파일이나 py를 고치면 돌려라(tests/README.md).
 set -euo pipefail
 
 : "${ZITADEL_URL:?in-cluster Zitadel URL (예: http://zitadel:8080)}"
@@ -9,6 +11,9 @@ set -euo pipefail
 CONFIG_FILE=${CONFIG_FILE:-/config/zitadel-config.yaml}
 STATE_CONFIGMAP=${STATE_CONFIGMAP:-zitadel-config-state}
 PY_SCRIPT=$(dirname "$(readlink -f "$0")")/apply_zitadel_config.py
+# 앱 자격증명의 쉘↔파이썬 인계 파일 — 형식은 파이썬 헤더 주석 참조.
+export CREDS_STATE_FILE=${CREDS_STATE_FILE:-/tmp/zitadel-app-creds-state.json}
+export CREDS_OUT_FILE=${CREDS_OUT_FILE:-/tmp/zitadel-app-creds-out.json}
 
 log() { echo "[apply-zitadel-config] $*"; }
 
@@ -17,16 +22,54 @@ log() { echo "[apply-zitadel-config] $*"; }
 python3 -c "import yaml" 2>/dev/null \
   || { log "ERROR: 이미지에 python3/PyYAML이 없다 — alpine/k8s 태그 인상 시 재확인 필요(config-job.yaml 주석)"; exit 1; }
 
-# 재실행 최적화: 선언+수렴 로직의 checksum이 지난 적용과 같으면 skip.
+DECLARED_SECRETS=$(python3 "$PY_SCRIPT" --list-credentials-secrets)
+
+# 재실행 최적화: 선언+수렴 로직의 checksum이 지난 적용과 같으면 skip —
+# 단, 선언된 자격증명 Secret이 하나라도 없으면(유실·회전 삭제) 재수렴한다.
 DESIRED_SUM=$(cat "$CONFIG_FILE" "$PY_SCRIPT" "$0" | sha256sum | cut -d' ' -f1)
 CURRENT_SUM=$(kubectl get configmap "$STATE_CONFIGMAP" \
   -o jsonpath='{.data.checksum}' 2>/dev/null || true)
-if [[ "$DESIRED_SUM" == "$CURRENT_SUM" && "${FORCE_APPLY:-false}" != "true" ]]; then
+MISSING_SECRETS=""
+for name in $DECLARED_SECRETS; do
+  kubectl get secret "$name" >/dev/null 2>&1 || MISSING_SECRETS="$MISSING_SECRETS $name"
+done
+if [[ "$DESIRED_SUM" == "$CURRENT_SUM" && -z "$MISSING_SECRETS" \
+      && "${FORCE_APPLY:-false}" != "true" ]]; then
   log "선언 무변경(checksum 일치) — 적용 생략"
   exit 0
 fi
+[[ -n "$MISSING_SECRETS" ]] && log "자격증명 Secret 부재:$MISSING_SECRETS — 수렴 실행"
+
+# 기존 자격증명 Secret의 보유 키 목록 → 파이썬의 재발급 판단 재료
+STATE_JSON='{}'
+for name in $DECLARED_SECRETS; do
+  if SECRET_JSON=$(kubectl get secret "$name" -o json 2>/dev/null); then
+    KEYS=$(jq -c '.data // {} | keys' <<<"$SECRET_JSON")
+    STATE_JSON=$(jq -c --arg n "$name" --argjson k "$KEYS" '. + {($n): $k}' <<<"$STATE_JSON")
+  fi
+done
+printf '%s' "$STATE_JSON" >"$CREDS_STATE_FILE"
 
 python3 "$PY_SCRIPT"
+
+# 파이썬이 내보낸 앱 자격증명 → k8s Secret 반영.
+# 있으면 stringData 병합 patch(미출력 키 보존 — 기존 client_secret이 지워지지
+# 않는다), 없으면 생성. 소비자는 이 Secret을 참조한다(선언의 credentialsSecret).
+if [[ -s "$CREDS_OUT_FILE" ]]; then
+  for name in $(jq -r 'keys[]' "$CREDS_OUT_FILE"); do
+    DATA=$(jq -c --arg n "$name" '.[$n]' "$CREDS_OUT_FILE")
+    if kubectl get secret "$name" >/dev/null 2>&1; then
+      kubectl patch secret "$name" \
+        -p "$(jq -nc --argjson d "$DATA" '{stringData: $d}')" >/dev/null
+      log "자격증명 Secret 갱신: $name"
+    else
+      jq -nc --arg n "$name" --argjson d "$DATA" \
+        '{apiVersion: "v1", kind: "Secret", metadata: {name: $n}, type: "Opaque", stringData: $d}' \
+        | kubectl apply -f - >/dev/null
+      log "자격증명 Secret 생성: $name"
+    fi
+  done
+fi
 
 kubectl create configmap "$STATE_CONFIGMAP" \
   --from-literal=checksum="$DESIRED_SUM" \
