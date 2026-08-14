@@ -7,4 +7,4 @@ resources:
 images:
   - name: API_COMPOSER
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-api-composer
-    newTag: v0.3.0
+    newTag: v0.4.0
