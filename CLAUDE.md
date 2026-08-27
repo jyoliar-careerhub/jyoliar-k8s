@@ -14,30 +14,25 @@
 
 Kubernetes 리소스 관리를 위한 GitOps 프로젝트
 
-## 세션 시작 시 환경 선택
+## 환경(overlay)
 
-Claude는 세션 시작 시 반드시 작업 환경을 확인해야 합니다:
+환경 이름 하나가 platform·gitops 양쪽 overlay 경로를 정합니다:
 
-1. `.kube/` 디렉토리의 `*.config` 파일 목록을 확인
-2. config 파일이 **2개 이상**인 경우: 사용자에게 어떤 환경에서 작업할지 질문
-3. config 파일이 **1개만** 존재하는 경우: 해당 환경으로 자동 선택 (질문 생략)
-
-선택된 환경은 해당 세션 동안 다음과 같이 사용됩니다:
-
-- kubeconfig: `.kube/{환경명}.config`
 - platform overlay: `platform/overlays/{환경명}/`
 - gitops overlay: `gitops/overlays/{환경명}/`
+
+현재 실재하는 환경은 `baremetal` 하나입니다.
 
 ## 프로젝트 구조
 
 ```
 .
-├── .kube/                      # kubeconfig 파일 저장소 (gitignore 대상)
-│   └── {환경명}.config         # 예: baremetal.config
+├── .kube/                      # 초기 구축 스크립트(deploy.sh)가 요구하는 kubeconfig (gitignore 대상)
+│   └── {환경명}.config         # 예: baremetal.config — 평소 클러스터 접근에는 쓰지 않는다
 ├── gitops/                     # ArgoCD로 관리되는 K8s 리소스
 │   ├── base/                   # 공통 리소스 정의
 │   └── overlays/               # 환경별 오버레이
-│       └── {환경명}/           # kubeconfig 이름과 매핑
+│       └── {환경명}/           # 환경 이름과 매핑 (예: baremetal)
 └── platform/                   # ArgoCD 설치 전 필요한 리소스 (Ceph 등)
     ├── base/                   # 공통 리소스 정의
     │   └── rook/               # Rook-Ceph 관련 리소스
@@ -155,20 +150,18 @@ application repo <URL> is not permitted in project '<project-name>'
 
 ## 클러스터 접근
 
-특정 환경의 클러스터에 접근할 때:
+**kubeconfig를 직접 지정하지 않습니다.** agent마다 적절한 권한의 자격증명이 `KUBECONFIG` 환경변수로 주입되므로, `kubectl`을 그대로 실행하면 됩니다 — context를 고르거나 `--kubeconfig`를 붙이지 않습니다. 무엇을 할 수 있는지는 주입된 자격증명의 RBAC가 정합니다.
 
-```bash
-kubectl <동사> [리소스] [-n <namespace>] --kubeconfig .kube/{환경명}.config
-```
-
-**중요**: `kubectl` 바로 뒤에 동사(get, apply, delete 등)를 먼저 위치시키고, 옵션들(`-n`, `--kubeconfig` 등)은 뒤에 배치합니다.
+**중요**: `kubectl` 바로 뒤에 동사(get, apply, delete 등)를 먼저 위치시키고, 옵션들(`-n` 등)은 뒤에 배치합니다.
 
 ```bash
 # 예시
-kubectl get nodes --kubeconfig .kube/{환경명}.config
-kubectl get pods -n kube-system --kubeconfig .kube/{환경명}.config
-kubectl apply -f manifest.yaml -n default --kubeconfig .kube/{환경명}.config
+kubectl get nodes
+kubectl get pods -n kube-system
+kubectl apply -f manifest.yaml -n default
 ```
+
+`.kube/{환경명}.config`는 위 「클러스터 초기 구축」의 부트스트랩 스크립트가 요구하는 별개 경로입니다 — 사람이 새 클러스터를 세울 때 쓰는 것이지 평소 접근 경로가 아닙니다.
 
 ## 관련 프로젝트 (jyoliar-k8s-ansible)
 
