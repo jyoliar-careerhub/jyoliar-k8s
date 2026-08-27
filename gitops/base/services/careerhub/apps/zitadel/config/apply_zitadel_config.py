@@ -111,6 +111,18 @@ class AppSpec:
 
 
 @dataclass(frozen=True)
+class DeclaredCredential:
+    """선언이 요구하는 자격증명 Secret과, 그 Secret이 보유해야 할 키.
+
+    쉘의 재수렴 판단 재료다 — Secret이 존재해도 키가 빠져 있으면(회전 삭제·
+    public→confidential 전환 직후) 수렴이 필요하다.
+    """
+
+    secret_name: str
+    keys: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class AppCredentials:
     """구성 Job이 k8s Secret으로 넘길 앱 자격증명 — kubectl 반영은 쉘 몫."""
 
@@ -175,9 +187,20 @@ class ZitadelConfig:
             fail(f"credentialsSecret 이름 중복: {sorted(names)}")
         return cfg
 
-    def credentials_secret_names(self) -> list[str]:
+    def declared_credentials(self) -> list[DeclaredCredential]:
         apps = self.project.apps if self.project else []
-        return [a.credentials_secret for a in apps if a.credentials_secret]
+        return [
+            DeclaredCredential(
+                secret_name=a.credentials_secret,
+                keys=("client_id", "client_secret") if a.issues_client_secret()
+                else ("client_id",),
+            )
+            for a in apps
+            if a.credentials_secret
+        ]
+
+    def credentials_secret_names(self) -> list[str]:
+        return [c.secret_name for c in self.declared_credentials()]
 
 
 # ------------------------------------------------------------------- 수렴
@@ -415,8 +438,10 @@ def main() -> None:
 
     if "--list-credentials-secrets" in sys.argv[1:]:
         # 쉘의 재실행 skip 판단·기존 Secret 상태 수집용 — API를 부르지 않는다.
-        for name in cfg.credentials_secret_names():
-            print(name)
+        # 한 줄에 "<Secret 이름>\t<보유해야 할 키,쉼표구분>" — 키까지 내는 이유는
+        # 쉘 헤더의 재수렴 조건 주석 참조.
+        for cred in cfg.declared_credentials():
+            print(f"{cred.secret_name}\t{','.join(cred.keys)}")
         return
 
     pat_file = os.environ.get("PAT_FILE", "/secrets/pat/pat")

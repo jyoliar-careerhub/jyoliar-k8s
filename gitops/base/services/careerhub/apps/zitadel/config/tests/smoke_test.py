@@ -286,8 +286,20 @@ def scenario_skip_and_rotate() -> None:
     r = run_script("fixture-config.yaml", UPDATE_ROUTES,
                    seeds={"configmap-zitadel-config-state.json": state_cm})
     r.check_clean("회전")
-    assert "자격증명 Secret 부재" in r.proc.stdout, r.proc.stdout
+    assert "(부재)" in r.proc.stdout, r.proc.stdout
     assert f"apply secret {SECRET_NAME}" in r.calls_log(), r.calls_log()
+    # checksum 일치 + Secret은 있지만 선언이 요구하는 client_secret 키가 없음
+    # (키 단위 회전 · public→confidential 전환 직후) → 존재만으로 넘어가지 않고
+    # 재수렴해 재발급. 존재만 보던 시절 이 상태는 "무변경"으로 조용히 넘어갔다.
+    basic_cm = {"data": {"checksum": checksum("fixture-config-basic.yaml")}}
+    r = run_script("fixture-config-basic.yaml", REGEN_ROUTES,
+                   seeds={"configmap-zitadel-config-state.json": basic_cm,
+                          f"secret-{SECRET_NAME}.json": EXISTING_SECRET})
+    r.check_clean("키 회전")
+    assert "키 없음: client_secret" in r.proc.stdout, r.proc.stdout
+    assert len(r.api_calls("_generate_client_secret")) == 1
+    payload = r.patch_payload(SECRET_NAME)
+    assert payload["stringData"]["client_secret"] == "new-sec-456", payload
 
 
 def main() -> None:
