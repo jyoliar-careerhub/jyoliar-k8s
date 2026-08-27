@@ -26,33 +26,42 @@ MANAGED_META='{"labels":{"app.kubernetes.io/managed-by":"zitadel-config-apply"},
 python3 -c "import yaml" 2>/dev/null \
   || { log "ERROR: 이미지에 python3/PyYAML이 없다 — alpine/k8s 태그 인상 시 재확인 필요(config-job.yaml 주석)"; exit 1; }
 
-DECLARED_SECRETS=$(python3 "$PY_SCRIPT" --list-credentials-secrets)
+# 선언된 자격증명 Secret과 각각이 보유해야 할 키 — "<이름>\t<키,키>" 한 줄씩.
+DECLARED_CREDS=$(python3 "$PY_SCRIPT" --list-credentials-secrets)
 
-# 재실행 최적화: 선언+수렴 로직의 checksum이 지난 적용과 같으면 skip —
-# 단, 선언된 자격증명 Secret이 하나라도 없으면(유실·회전 삭제) 재수렴한다.
+# 기존 자격증명 Secret의 보유 키 목록 → 파이썬의 재발급 판단 재료이자,
+# 아래 재실행 최적화의 재수렴 조건.
+STATE_JSON='{}'
+INCOMPLETE_CREDS=""
+while IFS=$'\t' read -r name want_keys; do
+  [[ -z "$name" ]] && continue
+  if SECRET_JSON=$(kubectl get secret "$name" -o json 2>/dev/null); then
+    KEYS=$(jq -c '.data // {} | keys' <<<"$SECRET_JSON")
+    STATE_JSON=$(jq -c --arg n "$name" --argjson k "$KEYS" '. + {($n): $k}' <<<"$STATE_JSON")
+    LACKS=$(jq -rn --argjson have "$KEYS" --arg want "$want_keys" \
+      '($want | split(",")) - $have | join(",")')
+    [[ -n "$LACKS" ]] && INCOMPLETE_CREDS="$INCOMPLETE_CREDS $name(키 없음: $LACKS)"
+  else
+    INCOMPLETE_CREDS="$INCOMPLETE_CREDS $name(부재)"
+  fi
+done <<<"$DECLARED_CREDS"
+printf '%s' "$STATE_JSON" >"$CREDS_STATE_FILE"
+
+# 재실행 최적화: 선언+수렴 로직의 checksum이 지난 적용과 같으면 skip — 단,
+# 선언된 자격증명 Secret이 없거나 선언이 요구하는 키를 갖추지 못했으면 재수렴한다.
+# 키까지 보는 이유: secret 인증 앱은 Secret이 있어도 client_secret 키만 빠질 수
+# 있다(회전 삭제 · public→confidential 전환 직후). 존재만 보면 그 상태가
+# checksum 일치에 묻혀 "무변경"으로 조용히 넘어간다 — 앱은 confidential인데
+# 소비자가 쓸 secret은 없는 채로.
 DESIRED_SUM=$(cat "$CONFIG_FILE" "$PY_SCRIPT" "$0" | sha256sum | cut -d' ' -f1)
 CURRENT_SUM=$(kubectl get configmap "$STATE_CONFIGMAP" \
   -o jsonpath='{.data.checksum}' 2>/dev/null || true)
-MISSING_SECRETS=""
-for name in $DECLARED_SECRETS; do
-  kubectl get secret "$name" >/dev/null 2>&1 || MISSING_SECRETS="$MISSING_SECRETS $name"
-done
-if [[ "$DESIRED_SUM" == "$CURRENT_SUM" && -z "$MISSING_SECRETS" \
+if [[ "$DESIRED_SUM" == "$CURRENT_SUM" && -z "$INCOMPLETE_CREDS" \
       && "${FORCE_APPLY:-false}" != "true" ]]; then
   log "선언 무변경(checksum 일치) — 적용 생략"
   exit 0
 fi
-[[ -n "$MISSING_SECRETS" ]] && log "자격증명 Secret 부재:$MISSING_SECRETS — 수렴 실행"
-
-# 기존 자격증명 Secret의 보유 키 목록 → 파이썬의 재발급 판단 재료
-STATE_JSON='{}'
-for name in $DECLARED_SECRETS; do
-  if SECRET_JSON=$(kubectl get secret "$name" -o json 2>/dev/null); then
-    KEYS=$(jq -c '.data // {} | keys' <<<"$SECRET_JSON")
-    STATE_JSON=$(jq -c --arg n "$name" --argjson k "$KEYS" '. + {($n): $k}' <<<"$STATE_JSON")
-  fi
-done
-printf '%s' "$STATE_JSON" >"$CREDS_STATE_FILE"
+[[ -n "$INCOMPLETE_CREDS" ]] && log "자격증명 Secret 미충족:$INCOMPLETE_CREDS — 수렴 실행"
 
 python3 "$PY_SCRIPT"
 

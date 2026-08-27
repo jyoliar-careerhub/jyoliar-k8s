@@ -34,8 +34,11 @@ python3 smoke_test.py
    client_secret 재발급을 호출하지 않는지 검증.
 3. **재발급 경로** — secret 인증(BASIC) 앱 + k8s Secret에 client_secret 없음.
    `_generate_client_secret` 1회 호출과 patch에 client_secret이 실리는지 검증.
-4. **skip·회전 가드** — checksum 일치 + Secret 존재 → API를 대지 않고 적용 생략.
-   checksum 일치 + Secret 부재(회전 삭제) → 재수렴해 Secret 재생성.
+4. **skip·회전 가드** — checksum 일치 + 선언이 요구하는 키를 갖춘 Secret → API를 대지 않고
+   적용 생략. checksum 일치 + Secret 부재(회전 삭제) → 재수렴해 Secret 재생성.
+   checksum 일치 + Secret은 있으나 `client_secret` 키 없음(키 단위 회전 ·
+   public→confidential 전환 직후) → 재수렴해 재발급 — 존재만 보면 이 상태가
+   "무변경"에 묻힌다.
 
 fixture 선언 2종은 실선언(overlays/.../zitadel-config.yaml)의 축약 고정본이다 —
 실선언 변경을 추적할 의무는 없고, 스크립트 로직이 읽는 구조만 유지하면 된다.

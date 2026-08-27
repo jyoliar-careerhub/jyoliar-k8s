@@ -1,7 +1,7 @@
 # Zitadel 초기 구성 — 수동 잔여 항목 절차 기록
 
 **작성일**: 2026-08-12 15:48 (KST)
-**최종 수정일**: 2026-08-14 16:02 (KST)
+**최종 수정일**: 2026-08-27 21:40 (KST)
 **대상 서비스**: zitadel, auth-service
 
 ---
@@ -69,12 +69,35 @@ Zitadel DB를 재초기화하면 이 절차도 되살아난다 — 사용자 원
 앱 자격증명(client_id·client_secret)의 k8s Secret 기록은 **수동 항목이 아니다** — 선언(`zitadel-config.yaml`)의 `credentialsSecret`을 구성 Job이 자동으로 채운다.
 여기 적는 것은 유출·회전 시의 수동 트리거뿐이다.
 
-- client_id는 비밀이 아니고 언제든 관리 API로 재조회 가능하다. client_secret(secret 인증 앱에만 존재 — 현행 careerhub-web은 public client라 없음)은 생성·재발급 응답에 **1회만 노출**되고 조회 API가 없다 — 그래서 Job이 그 시점에 포착해 Secret으로 남긴다.
-- **회전(유출 대응)**: 해당 k8s Secret을 삭제하고 Job을 재실행하면 된다 — Job은 선언된 자격증명 Secret이 없으면 checksum 무변경이어도 재수렴하고, secret 인증 앱이면 `_generate_client_secret`로 재발급해(기존 secret 즉시 무효화) 새 Secret을 만든다.
+- client_id는 비밀이 아니고 언제든 관리 API로 재조회 가능하다. client_secret(secret 인증 앱에만 존재 — careerhub-web은 ops-workflow#75에서 confidential(`WEB`+`BASIC`)로 전환해 존재한다)은 생성·재발급 응답에 **1회만 노출**되고 조회 API가 없다 — 그래서 Job이 그 시점에 포착해 Secret으로 남긴다.
+- **회전(유출 대응)**: 해당 k8s Secret에서 `client_secret` 키를 지우고(또는 Secret 자체를 지우고) Job을 재실행하면 된다 — Job은 선언된 자격증명 Secret이 없거나 **선언이 요구하는 키를 갖추지 못했으면** checksum 무변경이어도 재수렴하고, secret 인증 앱이면 `_generate_client_secret`로 재발급해(기존 secret 즉시 무효화) Secret에 다시 싣는다.
 
 ```bash
-kubectl delete secret zitadel-app-careerhub-web -n careerhub-prod
+# 키만 회전 — client_id는 유지되어 소비자의 다른 설정을 건드리지 않는다
+kubectl patch secret zitadel-app-careerhub-web -n careerhub-prod \
+  --type=json -p '[{"op":"remove","path":"/data/client_secret"}]'
+# 혹은 통째로: kubectl delete secret zitadel-app-careerhub-web -n careerhub-prod
 # 그다음 ArgoCD에서 zitadel app을 sync(PostSync hook Job 재실행) — 또는 다음 배포를 기다린다.
 ```
 
-- Secret 삭제 없이 재발급만 하고 싶다면 관리 API를 직접 불러도 되지만(회전 코멘트의 PAT 절차 참조), 그 경우 응답의 새 secret을 k8s Secret에 손으로 반영해야 한다 — 삭제+재실행 경로가 더 안전하다.
+- Secret 삭제 없이 재발급만 하고 싶다면 관리 API를 직접 불러도 되지만(회전 코멘트의 PAT 절차 참조), 그 경우 응답의 새 secret을 k8s Secret에 손으로 반영해야 한다 — 키 삭제+재실행 경로가 더 안전하다.
+
+### client_secret을 개발기로 옮기기 — 수동 (ops-workflow#75)
+
+careerhub-web은 아직 어디에도 배포돼 있지 않아 로그인 검증처가 localhost 개발기뿐이다.
+public client일 때는 개발기가 client_id만 알면 됐지만, confidential이 된 뒤로는 **클러스터 Secret의 값을 개발기로 옮기는 단계**가 생긴다. 값을 아는 것은 사람뿐이어야 하므로(agent의 ServiceAccount는 Secret 읽기가 RBAC로 거부된다) 이 이관은 수동이다.
+
+```bash
+kubectl -n careerhub-prod get secret zitadel-app-careerhub-web \
+  -o jsonpath='{.data.client_secret}' | base64 -d
+```
+
+값은 careerhub-web의 `.env.local`에 `ZITADEL_CLIENT_ID`·`ZITADEL_CLIENT_SECRET`으로 넣는다(`src/lib/auth/config.ts`가 읽는 이름 — secret이 있으면 교환·갱신이 Basic 인증으로 전환된다).
+값이 대화·터미널 로그를 거쳤다면 위 회전 절차로 즉시 무효화하는 편이 싸다.
+
+### public → confidential 전환 시 앱 재생성이 필요한가 — 필요 없음 (2026-08-27 확인)
+
+`appType`·`authMethodType` 변경은 기존 앱의 in-place 갱신으로 처리된다. 스크립트가 기존 앱에 이미 보내는 `PUT .../oidc_config`(UpdateOIDCApplication)가 두 필드를 변경 이벤트에 그대로 싣고, 입력 검증은 response type ↔ grant type 정합만 본다 — appType·authMethodType 조합은 compliance **경고**로만 응답에 실릴 뿐 거부 사유가 아니다(Zitadel v4.15.3 `internal/command/project_application_oidc.go` · `internal/domain/application_oidc.go`).
+전환 직후 k8s Secret에는 `client_secret` 키가 없으므로 위 재발급 경로가 이어서 발화한다.
+
+> 만약 어떤 이유로 PUT이 거부된다면 재생성 경로로 간다: Zitadel Console에서 해당 앱을 지우고 Job을 재실행하면 스크립트의 생성 분기가 새 앱을 만들고 생성 응답의 client_secret을 포착한다. **client_id가 바뀌므로** 소비자(개발기 `.env.local` 등)의 client_id도 함께 갱신해야 한다.
