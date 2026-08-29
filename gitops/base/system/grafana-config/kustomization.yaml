@@ -10,4 +10,4 @@ namespace: prometheus
 resources:
   - grafana.yaml
   - grafanaserviceaccount.yaml
-  - grafanaserviceaccount-local-harness.yaml
+  - grafanaserviceaccount-read-for-agent.yaml
