@@ -1,0 +1,28 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: agent-nginx-gateway
+  namespace: nginx-gateway
+spec:
+  infrastructure:
+    labels:
+      implementation: kube-vip
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: agent-nginx-proxy
+  # HTTPS 리스너만 둔다 — agent 는 https 로만 붙으므로 HTTP 리다이렉트가 필요 없다.
+  listeners:
+    - name: https
+      hostname: "obs.mg.jyo-liar.com"
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: wildcard-mg-tls
+      allowedRoutes:
+        namespaces:
+          from: All

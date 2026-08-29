@@ -9,6 +9,7 @@ resources:
   - grafana-oauth-externalsecret.yaml
 
 patches:
+- path: grafana-agent-proxy-httproute-patch.yaml
 - target:
     kind: HTTPRoute
     name: grafana-httproute

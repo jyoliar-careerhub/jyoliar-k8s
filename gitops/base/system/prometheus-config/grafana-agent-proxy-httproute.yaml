@@ -1,0 +1,29 @@
+# agent 전용 게이트웨이의 유일한 룰 — Grafana 데이터소스 프록시 GET 만 통과시킨다.
+# 이 룰에 걸리지 않는 경로·메서드는 매칭되는 룰이 없어 게이트웨이가 404 를 낸다.
+# read-only 의 둘째 겹이다(첫째 겹은 Grafana 의 ds_proxy validateRequest — Tempo 는 덮지 못한다).
+# backendRef 는 같은 ns(prometheus)의 Grafana 이므로 ReferenceGrant 가 필요 없다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana-agent-proxy-httproute
+spec:
+  hostnames:
+    - <AGENT_OBSERVABILITY_URL>
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: agent-nginx-gateway
+      namespace: nginx-gateway
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/datasources/proxy/
+          method: GET
+      backendRefs:
+        - group: ''
+          kind: Service
+          name: monitoring-grafana
+          port: 80
+          weight: 1
