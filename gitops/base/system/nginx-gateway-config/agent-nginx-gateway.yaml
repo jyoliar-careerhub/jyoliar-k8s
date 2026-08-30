@@ -1,0 +1,9 @@
+# agent 전용 Gateway — 로컬 하네스가 Grafana 데이터소스 프록시를 read-only 로 부르는 문.
+# internal-nginx-gateway 와 별도 VIP·별도 nginx Deployment 를 갖는다(NGF 는 Gateway 마다 하나씩 띄운다).
+# 리스너·인프라는 환경 overlay 가 채운다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: agent-nginx-gateway
+spec:
+  gatewayClassName: nginx
