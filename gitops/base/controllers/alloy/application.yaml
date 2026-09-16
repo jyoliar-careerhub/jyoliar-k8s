@@ -247,11 +247,16 @@ spec:
               // 이름은 namespace 기본값(traces.span.metrics)과 exporter 의 변환이 정한다 —
               // 실제 이름은 배포 후 Prometheus 에서 확인해 티켓 코멘트로 남긴다.
               otelcol.connector.spanmetrics "red" {
-                // Prometheus classic 히스토그램 (explicit bucket). 단위는 Prometheus 관례대로 초.
+                // Prometheus native histogram (exponential). explicit bucket 을 쓰지 않는다 —
+                // 경계를 미리 고를 필요가 없고 상대 오차가 어디서나 같으며, 라벨 조합당 시계열이 1개다.
+                // max_size 256: 관측 범위 2ms~6s 는 log2(3000) ≈ 11.6 옥타브 → scale 4
+                // (옥타브당 16 버킷 · 버킷 폭 2^(1/16)−1 ≈ 4.4% · 상대 오차 ±2.2%) 에서 185 버킷이라
+                // 256 안에 들어 scale 4 가 유지된다 (기본 160 이면 scale 3 · ±4.5% 로 내려간다).
+                // 256 이면 2ms~131s 까지 scale 4. 단위는 Prometheus 관례대로 초.
                 histogram {
                   unit = "s"
-                  explicit {
-                    buckets = ["5ms", "10ms", "25ms", "50ms", "100ms", "250ms", "500ms", "1s", "2500ms", "5s", "10s"]
+                  exponential {
+                    max_size = 256
                   }
                 }
 
@@ -282,6 +287,10 @@ spec:
 
                 endpoint {
                   url = "http://monitoring-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/write"
+
+                  // native histogram 전송 — 없으면 native 샘플은 조용히 버려진다.
+                  // Prometheus 3.10.0 은 native histogram stable — feature flag 불필요.
+                  send_native_histograms = true
 
                   // 시계열 수백 · flush 60s — 큐 상한을 낮춰 메모리 여유를 지킨다.
                   queue_config {
