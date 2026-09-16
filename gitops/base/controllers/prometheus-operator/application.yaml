@@ -117,6 +117,11 @@ spec:
                   enabled: true
               secureJsonData:
                 httpHeaderValue1: careerhub
+        prometheus:
+          prometheusSpec:
+            # Alloy spanmetrics 분기의 prometheus.remote_write 를 받는다 (ops-workflow#101).
+            # --web.enable-remote-write-receiver → POST /api/v1/write 개방 (클러스터 내부만).
+            enableRemoteWriteReceiver: true
         alertmanager:
           alertmanagerSpec:
             alertmanagerConfigMatcherStrategy:

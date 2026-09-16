@@ -151,7 +151,14 @@ spec:
                   endpoint = "0.0.0.0:4318"
                 }
                 output {
-                  traces = [otelcol.processor.k8sattributes.default.input]
+                  // fan-out — 같은 span 이 두 경로로 간다 (ops-workflow#101).
+                  //   1) 기존 Tempo 경로 (k8sattributes → batch → Tempo) — 변경 없음
+                  //   2) RED 메트릭 분기 (resource 축소 → spanmetrics → Prometheus)
+                  // 수신 직후 분기하므로 connector 는 Tempo 경로의 어떤 샘플러보다 앞에 선다.
+                  traces = [
+                    otelcol.processor.k8sattributes.default.input,
+                    otelcol.processor.transform.spanmetrics_resource.input,
+                  ]
                 }
               }
 
@@ -181,6 +188,12 @@ spec:
                 }
               }
 
+              // [샘플러 자리] 트레이스 저장 샘플링을 낮추게 되는 날, 샘플러
+              // (otelcol.processor.tail_sampling · otelcol.processor.probabilistic_sampler)는
+              // 이 Tempo 경로 — k8sattributes 와 batch 사이 — 에 둔다. SDK 샘플러가 아니다.
+              // spanmetrics connector 는 receiver 직후 분기에 있으므로 여기 어떤 샘플러를 두어도
+              // 메트릭은 전수, 저장만 표본이 된다 (ops-workflow#101 · Tempo 문서 권고).
+              // 지금은 SDK 100% (ParentBased(TraceIDRatioBased(1.0))) — 샘플러 없음.
               otelcol.processor.batch "traces" {
                 output {
                   traces = [otelcol.exporter.otlphttp.tempo.input]
@@ -200,6 +213,82 @@ spec:
                 client {
                   endpoint = "http://tempo.prometheus.svc.cluster.local:4318"
                   auth     = otelcol.auth.headers.tenant.handler
+                }
+              }
+
+              // ===========================================================
+              // RED 메트릭 분기 — span → spanmetrics → Prometheus remote-write
+              // (ops-workflow#101)
+              // ===========================================================
+              // receiver 에서 분기한 span 의 복사본만 다룬다 — Tempo 경로의 span 은 건드리지 않는다.
+
+              // connector 에 넣기 전 resource attribute 를 service.name 하나로 줄인다.
+              // spanmetrics 는 traces 의 resource scope 마다 metrics resource scope 를 만들므로,
+              // k8s.pod.name 등이 남으면 같은 라벨셋의 시계열이 resource 수만큼 생겨
+              // Prometheus 가 duplicate-timestamp 로 거부한다.
+              // span.name · span.kind · status.code 는 span 속성이라 여기 나열할 필요가 없다.
+              otelcol.processor.transform "spanmetrics_resource" {
+                error_mode = "ignore"
+
+                trace_statements {
+                  context = "resource"
+                  statements = [
+                    `keep_keys(resource.attributes, ["service.name"])`,
+                  ]
+                }
+
+                output {
+                  traces = [otelcol.connector.spanmetrics.red.input]
+                }
+              }
+
+              // R·E·D 집계. 차원은 기본 4개 — service.name · span.name · span.kind · status.code —
+              // 로 제한한다. dimension 블록을 추가하지 않는다 (사용자·요청 ID 등 고카디널리티 금지).
+              // 이름은 namespace 기본값(traces.span.metrics)과 exporter 의 변환이 정한다 —
+              // 실제 이름은 배포 후 Prometheus 에서 확인해 티켓 코멘트로 남긴다.
+              otelcol.connector.spanmetrics "red" {
+                // Prometheus classic 히스토그램 (explicit bucket). 단위는 Prometheus 관례대로 초.
+                histogram {
+                  unit = "s"
+                  explicit {
+                    buckets = ["5ms", "10ms", "25ms", "50ms", "100ms", "250ms", "500ms", "1s", "2500ms", "5s", "10s"]
+                  }
+                }
+
+                // 서버 span 이름 상한 ≈ 74 (gRPC 40 + HTTP 34) × kind × status 3 × 서비스 5 → 수백.
+                // 넘치면 새 조합은 otel.metric.overflow="true" 한 시계열로 접힌다 — 폭주 차단기.
+                aggregation_cardinality_limit = 2000
+
+                output {
+                  metrics = [otelcol.exporter.prometheus.spanmetrics.input]
+                }
+              }
+
+              // OTLP metrics → Prometheus 샘플. service.name 은 connector 의 기본 차원이라
+              // 이미 datapoint attribute 로 승격돼 있다 — resource 전체를 라벨로 옮기지 않는다.
+              otelcol.exporter.prometheus "spanmetrics" {
+                forward_to = [prometheus.remote_write.spanmetrics.receiver]
+              }
+
+              // Prometheus 로 remote-write. DaemonSet 5 파드가 각자 부분 집계를 쓰므로
+              // 노드 식별 external label 로 시계열을 분리한다 — 질의는 sum by (service) 로 합산.
+              // K8S_NODE_NAME 은 spec.nodeName (파드 재시작에도 안정). WAL 은 --storage.path
+              // (/tmp/alloy · 컨테이너 FS) — 재시작 시 미전송 샘플은 사라지지만 connector 의
+              // 누적 카운터도 메모리라 어차피 재시작에 리셋된다. 영속 볼륨을 두지 않는다.
+              prometheus.remote_write "spanmetrics" {
+                external_labels = {
+                  alloy_node = sys.env("K8S_NODE_NAME"),
+                }
+
+                endpoint {
+                  url = "http://monitoring-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/write"
+
+                  // 시계열 수백 · flush 60s — 큐 상한을 낮춰 메모리 여유를 지킨다.
+                  queue_config {
+                    capacity             = 2500
+                    max_shards           = 5
+                    max_samples_per_send = 500
+                  }
                 }
               }
           mounts:
