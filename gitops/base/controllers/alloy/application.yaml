@@ -222,10 +222,14 @@ spec:
               // ===========================================================
               // receiver 에서 분기한 span 의 복사본만 다룬다 — Tempo 경로의 span 은 건드리지 않는다.
 
-              // connector 에 넣기 전 resource attribute 를 service.name 하나로 줄인다.
+              // connector 에 넣기 전 resource attribute 를 service.name · env 둘로 줄인다.
               // spanmetrics 는 traces 의 resource scope 마다 metrics resource scope 를 만들므로,
               // k8s.pod.name 등이 남으면 같은 라벨셋의 시계열이 resource 수만큼 생겨
               // Prometheus 가 duplicate-timestamp 로 거부한다.
+              // env: 서비스 SDK 가 OTEL_RESOURCE_ATTRIBUTES 로 내는 deployment.environment(=namespace,
+              // 예 careerhub-prod)에서 접미어만 잘라 prod|dev|staging|test 로 — 로그 경로의 env 라벨과
+              // 같은 규칙. 같은 클러스터에 다른 환경 namespace 가 들어와도 메트릭이 섞이지 않는다.
+              // 규칙에 안 맞는 namespace 는 값이 그대로 남아 여전히 구분된다.
               // span.name · span.kind · status.code 는 span 속성이라 여기 나열할 필요가 없다.
               otelcol.processor.transform "spanmetrics_resource" {
                 error_mode = "ignore"
@@ -233,7 +237,9 @@ spec:
                 trace_statements {
                   context = "resource"
                   statements = [
-                    `keep_keys(resource.attributes, ["service.name"])`,
+                    `set(resource.attributes["env"], resource.attributes["deployment.environment"])`,
+                    `replace_pattern(resource.attributes["env"], "^.+-(prod|dev|staging|test)$", "$1")`,
+                    `keep_keys(resource.attributes, ["service.name", "env"])`,
                   ]
                 }
 
@@ -243,7 +249,7 @@ spec:
               }
 
               // R·E·D 집계. 차원은 기본 4개 — service.name · span.name · span.kind · status.code —
-              // 로 제한한다. dimension 블록을 추가하지 않는다 (사용자·요청 ID 등 고카디널리티 금지).
+              // 에 env 하나를 더한 5개로 제한한다 (사용자·요청 ID 등 고카디널리티 금지).
               // 이름은 namespace 기본값(traces.span.metrics)과 exporter 의 변환이 정한다 —
               // 실제 이름은 배포 후 Prometheus 에서 확인해 티켓 코멘트로 남긴다.
               otelcol.connector.spanmetrics "red" {
@@ -260,7 +266,12 @@ spec:
                   }
                 }
 
-                // 서버 span 이름 상한 ≈ 74 (gRPC 40 + HTTP 34) × kind × status 3 × 서비스 5 → 수백.
+                // 환경 구분 — resource attribute env(위 transform) 를 datapoint attribute 로 승격.
+                dimension {
+                  name = "env"
+                }
+
+                // 서버 span 이름 상한 ≈ 74 (gRPC 40 + HTTP 34) × kind × status 3 × 서비스 5 × env 1 → 수백.
                 // 넘치면 새 조합은 otel.metric.overflow="true" 한 시계열로 접힌다 — 폭주 차단기.
                 aggregation_cardinality_limit = 2000
 
