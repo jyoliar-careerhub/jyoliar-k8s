@@ -35,6 +35,8 @@ spec:
             type: filesystem
           limits_config:
             retention_period: 168h
+          pattern_ingester:
+            enabled: true
         singleBinary:
           replicas: 1
           persistence:
@@ -47,7 +49,7 @@ spec:
               memory: 256Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 1Gi
         gateway:
           enabled: false
         backend:
