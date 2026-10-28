@@ -4,3 +4,9 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - deployment.yaml
+
+configMapGenerator:
+  - name: cloudflared-config
+    namespace: cloudflare-system
+    files:
+      - config.yml

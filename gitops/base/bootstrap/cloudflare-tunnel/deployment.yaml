@@ -19,18 +19,20 @@ spec:
           command:
             - cloudflared
             - tunnel
-            - --no-autoupdate
-            - --loglevel
-            - info
-            - --metrics
-            - 0.0.0.0:2000
+            - --config
+            - /etc/cloudflared/config.yml
             - run
+            - $(TUNNEL_ID)
           env:
-            - name: TUNNEL_TOKEN
+            - name: TUNNEL_ID
               valueFrom:
                 secretKeyRef:
                   name: cloudflare-tunnel-token
-                  key: token
+                  key: tunnel-id
+          volumeMounts:
+            - name: cloudflared
+              mountPath: /etc/cloudflared
+              readOnly: true
           ports:
             - name: metrics
               containerPort: 2000
@@ -49,3 +51,17 @@ spec:
             limits:
               cpu: 100m
               memory: 128Mi
+      volumes:
+        - name: cloudflared
+          projected:
+            sources:
+              - configMap:
+                  name: cloudflared-config
+                  items:
+                    - key: config.yml
+                      path: config.yml
+              - secret:
+                  name: cloudflare-tunnel-token
+                  items:
+                    - key: credentials.json
+                      path: credentials.json
