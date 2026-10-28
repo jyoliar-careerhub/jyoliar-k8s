@@ -36,6 +36,12 @@ if [[ ! -f "$KUBECONFIG_PATH" ]]; then
     exit 1
 fi
 
+TUNNEL_ID=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["TunnelID"])' "$CREDENTIALS_PATH")
+if [[ -z "$TUNNEL_ID" ]]; then
+    echo "Error: TunnelID not found in credentials file: $CREDENTIALS_PATH"
+    exit 1
+fi
+
 NAMESPACE="cloudflare-system"
 SECRET_NAME="cloudflare-tunnel-token"
 
@@ -47,6 +53,7 @@ kubectl create namespace "$NAMESPACE" --kubeconfig "$KUBECONFIG_PATH" --dry-run=
 kubectl create secret generic "$SECRET_NAME" \
     -n "$NAMESPACE" \
     --from-file=credentials.json="$CREDENTIALS_PATH" \
+    --from-literal=tunnel-id="$TUNNEL_ID" \
     --kubeconfig "$KUBECONFIG_PATH" \
     --dry-run=client -o yaml | \
     kubectl apply --kubeconfig "$KUBECONFIG_PATH" -f -

@@ -22,7 +22,13 @@ spec:
             - --config
             - /etc/cloudflared/config.yml
             - run
-            - TUNNEL_UUID
+            - $(TUNNEL_ID)
+          env:
+            - name: TUNNEL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-tunnel-token
+                  key: tunnel-id
           volumeMounts:
             - name: cloudflared
               mountPath: /etc/cloudflared

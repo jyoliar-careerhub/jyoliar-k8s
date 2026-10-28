@@ -1,4 +1,3 @@
-tunnel: TUNNEL_UUID
 credentials-file: /etc/cloudflared/credentials.json
 no-autoupdate: true
 loglevel: info
