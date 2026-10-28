@@ -1,0 +1,12 @@
+tunnel: TUNNEL_UUID
+credentials-file: /etc/cloudflared/credentials.json
+no-autoupdate: true
+loglevel: info
+metrics: 0.0.0.0:2000
+
+ingress:
+  - hostname: k8s-oidc.jyo-liar.com
+    service: http://oidc-server.oidc-provider.svc.cluster.local:8080
+  - hostname: careerhub.jyo-liar.com
+    service: http://careerhub-public-gateway-nginx.careerhub-prod.svc.cluster.local:80
+  - service: http_status:404

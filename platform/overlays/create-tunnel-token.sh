@@ -3,27 +3,32 @@
 set -e
 
 usage() {
-    echo "Usage: $0 -t <tunnel-token> -k <kubeconfig-path>"
+    echo "Usage: $0 -f <credentials-json-path> -k <kubeconfig-path>"
     echo ""
     echo "Options:"
-    echo "  -t    Cloudflare Tunnel token"
+    echo "  -f    Cloudflare Tunnel credentials JSON (terraform output -raw tunnel_credentials)"
     echo "  -k    Path to kubeconfig file"
     echo "  -h    Show this help message"
     exit 1
 }
 
-while getopts "t:k:h" opt; do
+while getopts "f:k:h" opt; do
     case $opt in
-        t) TUNNEL_TOKEN="$OPTARG" ;;
+        f) CREDENTIALS_PATH="$OPTARG" ;;
         k) KUBECONFIG_PATH="$OPTARG" ;;
         h) usage ;;
         *) usage ;;
     esac
 done
 
-if [[ -z "$TUNNEL_TOKEN" || -z "$KUBECONFIG_PATH" ]]; then
+if [[ -z "$CREDENTIALS_PATH" || -z "$KUBECONFIG_PATH" ]]; then
     echo "Error: All arguments are required."
     usage
+fi
+
+if [[ ! -f "$CREDENTIALS_PATH" ]]; then
+    echo "Error: credentials file not found: $CREDENTIALS_PATH"
+    exit 1
 fi
 
 if [[ ! -f "$KUBECONFIG_PATH" ]]; then
@@ -41,7 +46,7 @@ kubectl create namespace "$NAMESPACE" --kubeconfig "$KUBECONFIG_PATH" --dry-run=
 # Create or update secret
 kubectl create secret generic "$SECRET_NAME" \
     -n "$NAMESPACE" \
-    --from-literal=token="$TUNNEL_TOKEN" \
+    --from-file=credentials.json="$CREDENTIALS_PATH" \
     --kubeconfig "$KUBECONFIG_PATH" \
     --dry-run=client -o yaml | \
     kubectl apply --kubeconfig "$KUBECONFIG_PATH" -f -
