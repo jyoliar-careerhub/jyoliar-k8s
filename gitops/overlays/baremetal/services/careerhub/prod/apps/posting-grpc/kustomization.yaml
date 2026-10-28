@@ -7,4 +7,4 @@ resources:
 images:
   - name: POSTING_SERVICE
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-posting-service
-    newTag: v0.2.1
+    newTag: v0.2.2

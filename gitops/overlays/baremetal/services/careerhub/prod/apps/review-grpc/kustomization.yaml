@@ -7,4 +7,4 @@ resources:
 images:
   - name: REVIEW_SERVICE
     newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-review-service
-    newTag: v0.2.1
+    newTag: v0.2.2
