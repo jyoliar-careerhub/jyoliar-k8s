@@ -1,0 +1,23 @@
+# 공개 전용 Gateway — NGF 가 만드는 Service(careerhub-public-gateway-nginx)가
+# 터널 ingress 의 careerhub 줄과 이름이 맞물린다. 클러스터 안 홉이라 HTTP 만 연다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: careerhub-public-gateway
+  annotations:
+    # 터널 UUID 는 #136 의 산출물. ClusterIP Gateway 라 status 주소 대신 이 값이 레코드 대상이다.
+    external-dns.alpha.kubernetes.io/target: 69dc2c8b-57d2-4fac-ad10-6653efdbdf20.cfargotunnel.com
+spec:
+  gatewayClassName: nginx
+  infrastructure:
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: careerhub-public-nginx-proxy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All

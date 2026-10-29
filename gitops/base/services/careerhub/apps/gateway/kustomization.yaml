@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - nginx-proxy.yaml
   - nginx-gateway.yaml
+  - public-nginx-proxy.yaml
+  - public-nginx-gateway.yaml
   - httproute.yaml
   - http-redirect.yaml
   - wildcard-certificate.yaml
