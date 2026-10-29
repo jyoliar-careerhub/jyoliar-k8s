@@ -3,10 +3,10 @@ kind: Kustomization
 namespace: nginx-gateway
 
 resources:
-  - https://github.com/kubernetes-sigs/gateway-api/config/crd?timeout=120&ref=v1.4.0
-  - https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.2.1/deploy/crds.yaml
+  - https://github.com/kubernetes-sigs/gateway-api/config/crd?timeout=120&ref=v1.6.3
+  - https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.8.0/deploy/crds.yaml
   - clusterrole.yaml
-  - https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.2.1/deploy/default/deploy.yaml
+  - https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.8.0/deploy/default/deploy.yaml
 
 patches:
 - path: nginx-gateway-cert-generator-patch.yaml
