@@ -2,14 +2,17 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: careerhub-httproute
+  annotations:
+    # 레코드 대상은 부모 Gateway 의 target(터널 CNAME), 프록시 여부는 Route 의 몫이다.
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
   hostnames:
     - OVERRIDE_REQUIRED
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: careerhub-nginx-gateway
-      sectionName: https
+      name: careerhub-public-gateway
+      sectionName: http
   rules:
     - matches:
         - path:
@@ -29,15 +32,5 @@ spec:
         - group: ''
           kind: Service
           name: api-composer
-          port: 80
-          weight: 1
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /auth
-      backendRefs:
-        - group: ''
-          kind: Service
-          name: auth-service
           port: 80
           weight: 1
