@@ -1,0 +1,19 @@
+# 공개 전용 — cloudflared 터널에서만 닿는다. LAN 주소를 두지 않는다(ClusterIP).
+# 터널 홉은 cloudflared 파드 IP 로 오므로 신뢰 대역은 파드 CIDR 이다.
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: careerhub-public-nginx-proxy
+spec:
+  kubernetes:
+    service:
+      type: ClusterIP
+  rewriteClientIP:
+    mode: XForwardedFor
+    setIPRecursively: true
+    trustedAddresses:
+      - type: CIDR
+        value: 10.244.0.0/16
+  telemetry:
+    exporter:
+      endpoint: alloy.prometheus.svc.cluster.local:4317
