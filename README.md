@@ -74,11 +74,8 @@ External Secrets 의 AWS 인증은 IRSA 다 — AWS 키를 Secret 으로 만드�
 | jyoliar-platform-terraform | S3 백업 버킷 | `backup` | CloudNativePG `ObjectStore` 의 `destinationPath` — overlay 패치 |
 | jyoliar-platform-terraform | ECR 저장소 | `ci` | overlay kustomization 의 `images` |
 | jyoliar-platform-terraform | Cloudflare 터널 자격증명 | `cloudflare` 출력 `tunnel_credentials` | [`create-tunnel-token.sh`](platform/overlays/create-tunnel-token.sh) → [`cloudflare-tunnel`](gitops/base/bootstrap/cloudflare-tunnel) 의 Secret |
+| jyoliar-platform-terraform | 합의 값 — OIDC 발급자 URL · IRSA 가 신뢰하는 ServiceAccount 좌표 | `iam` · `backup` 의 변수 기본값이 먼저 정한다 | [`cloudflare-tunnel`](gitops/base/bootstrap/cloudflare-tunnel) 의 ingress hostname · 해당 ServiceAccount 의 이름 · 네임스페이스 |
 
-넘기는 것:
-
-| 받는 저장소 | 무엇 | 이 저장소의 자리 | 그쪽의 자리 |
-|---|---|---|---|
-| jyoliar-platform-terraform | OIDC 발급자 호스트의 공개 서빙(JWKS) | [`oidc-provider`](gitops/base/bootstrap/oidc-provider) 가 서빙하고 [`cloudflare-tunnel`](gitops/base/bootstrap/cloudflare-tunnel) 이 밖으로 낸다 | `iam` 워크스페이스가 그 URL 의 TLS 인증서를 읽어 OIDC Provider 를 만든다 — 호스트가 살아 있어야 apply 된다 |
+넘기는 것은 없다 — 클러스터 안이 가장 위 층이다. OIDC 발급자의 JWKS 를 [`oidc-provider`](gitops/base/bootstrap/oidc-provider) 가 서빙하고 [`cloudflare-tunnel`](gitops/base/bootstrap/cloudflare-tunnel) 이 밖으로 내지만, 그것을 읽는 쪽은 저장소가 아니라 AWS STS 다(IRSA 토큰 교환 시점).
 
 Terraform 은 클러스터 안을 알지 못한다. 방향은 한쪽이다.
