@@ -10,7 +10,7 @@ platform/                  # Argo CD 보다 먼저 있어야 하는 것 — helm
 └── overlays/
     ├── {env}/             # helmfile.yaml · kustomization.yaml · 차트별 values
     ├── deploy.sh          # 초기 구축 1단계
-    └── create-tunnel-token.sh
+    └── create-tunnel-token.sh  # 초기 구축 2단계 — 터널 자격증명 Secret
 gitops/                    # Argo CD 가 동기화하는 전부
 ├── base/
 │   ├── bootstrap/         # argocd · cloudflare-tunnel · oidc-provider · external-secrets-resources
