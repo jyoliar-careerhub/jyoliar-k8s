@@ -49,7 +49,10 @@ spec:
             # 분모 셀렉터(code 없음)는 검사가 남는다. (ops-workflow#151)
             # promcheck는 매처를 정렬한 문자열(code,job,verb 순)에 매치한다
             # (VectorSelector.String의 sort.Strings) — 원문 순서로 쓰면 매치되지 않는다.
-            - '--check.ignore-selector=code=~"5\.\.",job="apiserver",verb=~"POST\|PUT\|PATCH\|DELETE"'
+            # ⚠ 값에 쉼표 금지 — 플래그 파서(kong)가 []string 값을 쉼표로 쪼갠다.
+            #   쉼표는 정규식 이스케이프 \x2c 로 쓴다 (맨 쉼표로 쓰면 job="apiserver"
+            #   단독 패턴이 생겨 apiserver 셀렉터 전부가 검사에서 빠진다).
+            - '--check.ignore-selector=code=~"5\.\."\x2cjob="apiserver"\x2cverb=~"POST\|PUT\|PATCH\|DELETE"'
             - --check.ignore-selector=apiserver_request_terminations_total
             # ④ 구조적 공집합·미사용 기능 (chart 소유 룰 — 삭제 불가)
             - --check.ignore-selector=integration!~
