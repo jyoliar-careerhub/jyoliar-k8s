@@ -19,10 +19,6 @@ spec:
           - name: mcps
             path: gitops/overlays/baremetal/services/ai-agents/mcps
             phase: "1"
-          # agent별 overlay — base 참조 + ECR 이미지 주입. phase 2(secrets 이후). 세부 역할 agent는 여기에 element를 추가한다.
-          - name: careerhub-incident-agent
-            path: gitops/overlays/baremetal/services/ai-agents/careerhub-incident-agent
-            phase: "2"
   strategy:
     type: RollingSync
     rollingSync:
