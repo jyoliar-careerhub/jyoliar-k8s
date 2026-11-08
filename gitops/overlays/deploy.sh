@@ -36,18 +36,6 @@ fi
 
 export KUBECONFIG="$KUBECONFIG_FILE"
 
-# Check if aws-credentials secret exists in argocd namespace
-if ! kubectl get secret aws-credentials -n argocd &>/dev/null; then
-    echo "Error: Secret 'aws-credentials' not found in namespace 'argocd'"
-    echo ""
-    echo "Please create the secret first:"
-    echo "  kubectl create namespace argocd"
-    echo "  kubectl create secret generic aws-credentials -n argocd \\"
-    echo "    --from-literal=access-key=<ACCESS_KEY_ID> \\"
-    echo "    --from-literal=secret-access-key=<SECRET_ACCESS_KEY>"
-    exit 1
-fi
-
 echo "Deploying GitOps components for environment: $ENV_NAME"
 echo "Using kubeconfig: $KUBECONFIG_FILE"
 echo ""

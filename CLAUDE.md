@@ -56,27 +56,20 @@ Kubernetes 리소스 관리를 위한 GitOps 프로젝트
 
 ## 클러스터 초기 구축
 
-새 클러스터를 구축할 때 아래 스크립트들을 **순차적으로** 실행해야 합니다:
+새 클러스터를 구축할 때 아래 스크립트들을 **순차적으로** 실행해야 합니다 (`README.md` 의 초기 구축 절과 같은 순서):
 
 ```bash
-# 1. Platform 리소스 배포 (Longhorn, ArgoCD, External Secrets 등)
+# 1. Platform 리소스 배포 (External Secrets, kubelet-csr-approver, Longhorn, metrics-server)
 ./platform/overlays/deploy.sh {환경명}
 
-# 2. AWS Credentials Secret 생성 (External Secrets용)
-./platform/overlays/create-aws-credentials.sh \
-    -a <AWS_ACCESS_KEY_ID> \
-    -s <AWS_SECRET_ACCESS_KEY> \
-    -k .kube/{환경명}.config
+# 2. Cloudflare 터널 자격증명 Secret 생성 (jyoliar-platform-terraform 출력)
+./platform/overlays/create-tunnel-token.sh -f <credentials.json> -k .kube/{환경명}.config
 
-# 3. GitOps 리소스 배포 (ArgoCD ApplicationSet 부트스트랩)
+# 3. GitOps 리소스 배포 (ArgoCD · ClusterSecretStore · root ApplicationSet 부트스트랩)
 ./gitops/overlays/deploy.sh {환경명}
 ```
 
-**실행 순서가 중요합니다:**
-
-- `platform/overlays/deploy.sh`: ArgoCD 및 External Secrets Operator 설치
-- `platform/overlays/create-aws-credentials.sh`: ExternalSecret이 사용할 AWS 인증 정보를 argocd 네임스페이스에 생성
-- `gitops/overlays/deploy.sh`: ArgoCD Application 부트스트랩 (aws-credentials 시크릿 존재 필수)
+External Secrets 의 AWS 인증은 IRSA 다 — AWS 키를 Secret 으로 만드는 단계는 없다.
 
 ## Kustomize 사용 규칙
 
