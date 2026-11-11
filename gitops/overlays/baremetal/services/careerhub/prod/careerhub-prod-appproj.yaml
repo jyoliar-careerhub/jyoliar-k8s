@@ -8,7 +8,7 @@ metadata:
 spec:
   description: CareerHub prod environment
   sourceRepos:
-    - git@github.com:jae2274/jyoliar-k8s.git
+    - git@github.com:jyoliar-careerhub/jyoliar-k8s.git
   destinations:
     - namespace: careerhub-prod
       server: https://kubernetes.default.svc

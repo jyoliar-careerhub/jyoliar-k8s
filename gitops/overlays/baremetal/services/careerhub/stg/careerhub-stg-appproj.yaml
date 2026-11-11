@@ -8,7 +8,7 @@ metadata:
 spec:
   description: CareerHub stg environment
   sourceRepos:
-    - git@github.com:jae2274/jyoliar-k8s.git
+    - git@github.com:jyoliar-careerhub/jyoliar-k8s.git
   destinations:
     - namespace: careerhub-stg
       server: https://kubernetes.default.svc
