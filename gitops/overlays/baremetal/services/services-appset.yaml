@@ -9,9 +9,9 @@ spec:
   generators:
     - list:
         elements:
-          - name: careerhub-dev
-            path: gitops/overlays/baremetal/services/careerhub/dev
-            namespace: careerhub-dev
+          - name: careerhub-stg
+            path: gitops/overlays/baremetal/services/careerhub/stg
+            namespace: careerhub-stg
           - name: careerhub-prod
             path: gitops/overlays/baremetal/services/careerhub/prod
             namespace: careerhub-prod
