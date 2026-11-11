@@ -1,0 +1,3 @@
+resources:
+  - careerhub-stg-appproj.yaml
+  - careerhub-stg-appset.yaml

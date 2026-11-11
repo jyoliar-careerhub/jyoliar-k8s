@@ -1,30 +1,41 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: careerhub-dev
+  name: careerhub-stg
   namespace: argocd
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
+    # 항목은 overlay 가 생길 때 더한다 — mongodb · postgresql 은 phase "1", apps 는 phase "2" (prod 와 같은 묶음)
     - list:
-        elements:
-          - name: careerhub-dev-mongodb
-            path: gitops/overlays/baremetal/services/careerhub/dev/mongodb
-          # - name: careerhub-dev-apps
-          #   path: gitops/overlays/baremetal/services/careerhub/dev/apps
+        elements: []
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: careerhub-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: careerhub-phase
+              operator: In
+              values: ["2"]
   template:
     metadata:
       name: "{{ .name }}"
+      labels:
+        careerhub-phase: "{{ .phase }}"
     spec:
-      project: careerhub-dev
+      project: careerhub-stg
       source:
         repoURL: git@github.com:jae2274/jyoliar-k8s.git
         targetRevision: main
         path: "{{ .path }}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: careerhub-dev
+        namespace: careerhub-stg
       syncPolicy:
         automated:
           prune: true
