@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-    - git@github.com:jae2274/jyoliar-k8s.git
+    - git@github.com:jyoliar-careerhub/jyoliar-k8s.git
   destinations:
     # 전체 ns 허용(system/services/controllers 프로젝트와 동일).
     # ai-agents 번들은 ns-agnostic App(mcps 등, 빈 destination.namespace)을 포함하므로

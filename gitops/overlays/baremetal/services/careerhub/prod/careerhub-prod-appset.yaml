@@ -38,7 +38,7 @@ spec:
     spec:
       project: careerhub-prod
       source:
-        repoURL: git@github.com:jae2274/jyoliar-k8s.git
+        repoURL: git@github.com:jyoliar-careerhub/jyoliar-k8s.git
         targetRevision: main
         path: "{{ .path }}"
       destination:
