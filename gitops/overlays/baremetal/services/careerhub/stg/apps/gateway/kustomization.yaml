@@ -1,15 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# 공개 Gateway = 커리어허브 외부 서비스 엔드포인트 · 내부 Gateway = 관리 서비스 엔드포인트(Zitadel · 관리 콘솔).
+# stg 에는 cloudflared 터널이 없다 — 두 Gateway 모두 kube-vip VIP(사설 IP)로만 노출되고, 사람은 Tailscale 로 들어온다.
 resources:
   - ../../../../../../../base/services/careerhub/apps/gateway
+  - public-http-redirect.yaml
 
 patches:
-  # stg 는 공개 노출이 없다 — 사람은 Tailscale 로 내부 Gateway 의 사설 IP 에 들어간다.
-  # base 는 prod 컷오버에서 다시 쓰이므로 가르지 않고, 공개 쪽을 여기서 삭제 patch 로 뺀다.
-  - path: public-gateway-delete.yaml
-  - path: public-nginx-proxy-delete.yaml
+  - path: public-gateway-patch.yaml
+  - path: public-nginx-proxy-patch.yaml
   - path: httproute-delete.yaml
-  - path: observability-policy-delete.yaml
   - path: http-redirect-patch.yaml
   - path: certificate-patch.yaml

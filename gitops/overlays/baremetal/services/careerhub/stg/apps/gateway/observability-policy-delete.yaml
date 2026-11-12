@@ -1,6 +1,0 @@
-# careerhub-httproute 를 겨누는 정책 — 라우트와 함께 뺀다.
-apiVersion: gateway.nginx.org/v1alpha2
-kind: ObservabilityPolicy
-metadata:
-  name: careerhub-trace
-$patch: delete

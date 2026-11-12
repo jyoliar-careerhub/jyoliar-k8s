@@ -1,0 +1,23 @@
+# 공개 Gateway 의 HTTP → HTTPS 리다이렉트 — prod 는 Cloudflare 가 하는 일을 stg 에서는 Gateway 가 한다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: public-http-to-https-redirect
+spec:
+  hostnames:
+    - stg-careerhub.jyo-liar.com
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: careerhub-public-gateway
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+      matches:
+        - path:
+            type: PathPrefix
+            value: /

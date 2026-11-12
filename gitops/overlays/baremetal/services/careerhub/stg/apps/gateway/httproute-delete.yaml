@@ -1,6 +1,7 @@
-# 앱 라우트는 백엔드(careerhub-web)가 생기는 stg 배포 Task 의 것이다.
-# base 의 라우트는 공개 Gateway 에 붙고 백엔드(frontend · api-composer)가 stg 에 없으므로,
-# 자리만 남기지 않고 뺀다 — 그 Task 가 이 patch 를 걷고 stg 모양으로 patch 한다.
+# 앱 라우트는 백엔드(careerhub-web)가 생기는 stg 배포 Task 의 것이다 — 그때까지 뺀다.
+# 그 Task 는 이 delete 를 patch 로 바꾼다: hostname(stg-careerhub.jyo-liar.com) ·
+# sectionName https(http 리스너는 리다이렉트가 쓴다) · cloudflare-proxied 어노테이션 제거.
+# careerhub-trace 는 남겨 둔다 — 라우트가 서면 그대로 붙는다.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
