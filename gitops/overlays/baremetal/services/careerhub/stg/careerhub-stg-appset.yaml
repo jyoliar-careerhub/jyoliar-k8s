@@ -9,7 +9,13 @@ spec:
   generators:
     # 항목은 overlay 가 생길 때 더한다 — mongodb · postgresql 은 phase "1", apps 는 phase "2" (prod 와 같은 묶음)
     - list:
-        elements: []
+        elements:
+          - name: careerhub-stg-mongodb
+            path: gitops/overlays/baremetal/services/careerhub/stg/mongodb
+            phase: "1"
+          - name: careerhub-stg-postgresql
+            path: gitops/overlays/baremetal/services/careerhub/stg/postgresql
+            phase: "1"
   strategy:
     type: RollingSync
     rollingSync:

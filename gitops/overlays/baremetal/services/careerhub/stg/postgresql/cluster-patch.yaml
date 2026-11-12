@@ -1,0 +1,31 @@
+# prod overlay 와 같은 토폴로지 · 배치 — 다른 것은 스토리지(크기 · StorageClass)와 PriorityClass 뿐이다.
+# Cluster 이름을 바꾸지 않는다 — 백업 IRSA Role 이 SA careerhub-postgresql(-restore) 만 신뢰한다.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: careerhub-postgresql
+spec:
+  instances: 2
+  priorityClassName: database-dev
+  resources:
+  # stg 는 지워도 되는 환경 — reclaimPolicy Delete 인 longhorn-static(기본 longhorn 은 Retain).
+  storage:
+    size: 5Gi
+    storageClass: longhorn-static
+  walStorage:
+    size: 1Gi
+    storageClass: longhorn-static
+  affinity:
+    tolerations:
+      - key: node.longhorn.io/storage
+        operator: Exists
+        effect: PreferNoSchedule
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node.longhorn.io/create-default-disk
+                operator: In
+                values:
+                  - "true"

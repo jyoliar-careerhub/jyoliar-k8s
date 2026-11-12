@@ -1,0 +1,44 @@
+# prod overlay 와 같은 토폴로지 · 배치 — 다른 것은 스토리지(크기 · StorageClass)와 PriorityClass 뿐이다.
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: careerhub-mongodb
+spec:
+  members: 2
+  arbiters: 1
+  statefulSet:
+    spec:
+      template:
+        spec:
+          priorityClassName: database-dev
+          tolerations:
+            - key: node.longhorn.io/storage
+              operator: Exists
+              effect: PreferNoSchedule
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: node.longhorn.io/create-default-disk
+                        operator: In
+                        values:
+                          - "true"
+      # stg 는 지워도 되는 환경 — reclaimPolicy Delete 인 longhorn-static 으로
+      # PVC 삭제가 PV · Longhorn 볼륨까지 반환되게 한다(기본 longhorn 은 Retain).
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            storageClassName: longhorn-static
+            resources:
+              requests:
+                storage: 10Gi
+        - metadata:
+            name: logs-volume
+          spec:
+            storageClassName: longhorn-static
+            resources:
+              requests:
+                storage: 1Gi
