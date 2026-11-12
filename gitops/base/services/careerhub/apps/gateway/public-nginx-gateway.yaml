@@ -4,10 +4,6 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: careerhub-public-gateway
-  annotations:
-    # ClusterIP Gateway 라 status 주소 대신 이 값이 레코드 대상이다.
-    # cftunnel 은 jyoliar-platform-terraform(shared-cloudflare)이 소유한 터널 안정 이름 — UUID 는 그쪽 안에서만 돈다.
-    external-dns.alpha.kubernetes.io/target: cftunnel.jyo-liar.com
 spec:
   gatewayClassName: nginx
   infrastructure:
