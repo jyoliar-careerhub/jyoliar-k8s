@@ -36,6 +36,10 @@ spec:
           - name: kagent-config
             path: gitops/overlays/baremetal/system/kagent-config
             phase: "2"
+          # careerhub-stg-seed-rbac: stg MongoDB 복사 Job 이 prod 읽기 전용 자격을 읽는 Role (의존 없음)
+          - name: careerhub-stg-seed-rbac
+            path: gitops/overlays/baremetal/system/careerhub-stg-seed-rbac
+            phase: "2"
   strategy:
     type: RollingSync
     rollingSync:
