@@ -1,0 +1,9 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-careerhub-tls
+spec:
+  dnsNames:
+    # 와일드카드(*.stg-careerhub)는 apex 를 커버하지 않는다.
+    - "stg-careerhub.jyo-liar.com"
+    - "*.stg-careerhub.jyo-liar.com"

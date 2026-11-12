@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../../../../../base/services/careerhub/apps/gateway
+
+patches:
+  # stg 는 공개 노출이 없다 — 사람은 Tailscale 로 내부 Gateway 의 사설 IP 에 들어간다.
+  # base 는 prod 컷오버에서 다시 쓰이므로 가르지 않고, 공개 쪽을 여기서 삭제 patch 로 뺀다.
+  - path: public-gateway-delete.yaml
+  - path: public-nginx-proxy-delete.yaml
+  - path: httproute-delete.yaml
+  - path: observability-policy-delete.yaml
+  - path: http-redirect-patch.yaml
+  - path: certificate-patch.yaml

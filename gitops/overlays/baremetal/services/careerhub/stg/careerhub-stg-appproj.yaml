@@ -12,6 +12,9 @@ spec:
   destinations:
     - namespace: careerhub-stg
       server: https://kubernetes.default.svc
+    # careerhub-stg-apps 의 AppProject · ApplicationSet 은 argocd 에 산다
+    - namespace: argocd
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

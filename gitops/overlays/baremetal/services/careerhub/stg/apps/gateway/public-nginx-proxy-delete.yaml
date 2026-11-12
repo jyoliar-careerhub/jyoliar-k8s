@@ -1,0 +1,6 @@
+# 공개 Gateway 의 NginxProxy — Gateway 와 함께 뺀다.
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: careerhub-public-nginx-proxy
+$patch: delete

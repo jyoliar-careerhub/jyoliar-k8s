@@ -1,0 +1,6 @@
+# 공개 Gateway 는 cloudflared 터널 전용이다 — stg 에는 공개면이 없다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: careerhub-public-gateway
+$patch: delete
