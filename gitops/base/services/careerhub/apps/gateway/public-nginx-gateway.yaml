@@ -1,5 +1,5 @@
-# 공개 전용 Gateway — NGF 가 만드는 Service(careerhub-public-gateway-nginx)가
-# 터널 ingress 의 careerhub 줄과 이름이 맞물린다. 클러스터 안 홉이라 HTTP 만 연다.
+# 공개 Gateway — 커리어허브 외부 서비스 엔드포인트. 노출 방식(리스너 · 주소)은 환경이 정한다.
+# NGF 가 만드는 Service(careerhub-public-gateway-nginx)의 이름이 prod 터널 ingress 와 맞물린다 — 이름을 바꾸지 않는다.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -11,10 +11,4 @@ spec:
       group: gateway.nginx.org
       kind: NginxProxy
       name: careerhub-public-nginx-proxy
-  listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
-      allowedRoutes:
-        namespaces:
-          from: All
+  # listeners 는 overlay 가 정한다(필수 필드 — 빠뜨리면 apply 가 거부된다)

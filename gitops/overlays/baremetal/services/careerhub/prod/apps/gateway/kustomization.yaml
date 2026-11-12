@@ -9,3 +9,4 @@ patches:
   - path: http-redirect-patch.yaml
   - path: certificate-patch.yaml
   - path: public-gateway-patch.yaml
+  - path: public-nginx-proxy-patch.yaml

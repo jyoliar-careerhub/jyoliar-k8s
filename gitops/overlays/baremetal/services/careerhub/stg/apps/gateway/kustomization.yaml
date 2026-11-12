@@ -5,7 +5,6 @@ kind: Kustomization
 # stg 에는 cloudflared 터널이 없다 — 두 Gateway 모두 kube-vip VIP(사설 IP)로만 노출되고, 사람은 Tailscale 로 들어온다.
 resources:
   - ../../../../../../../base/services/careerhub/apps/gateway
-  - public-http-redirect.yaml
 
 patches:
   - path: public-gateway-patch.yaml
