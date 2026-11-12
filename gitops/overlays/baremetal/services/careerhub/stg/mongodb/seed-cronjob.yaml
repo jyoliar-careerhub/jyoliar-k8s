@@ -1,0 +1,70 @@
+# prod 의 posting · review DB 를 stg MongoDB 로 복사한다 — 사람이 필요할 때만 돌린다.
+# suspend 된 CronJob 이라 sync 로는 실행되지 않는다(schedule 은 필수 필드라 채운 자리일 뿐이다).
+#
+#   kubectl create job mongodb-seed-$(date +%Y%m%d%H%M) --from=cronjob/mongodb-seed-from-prod -n careerhub-stg
+#
+#  - prod 에는 읽기 전용 사용자 mongodb-readonly 로, secondary 에서만 읽는다.
+#  - stg 에는 DB 별 migrator(그 DB 의 dbOwner)로 쓴다 — userinfo 에는 쓸 권한 자체가 없다.
+#  - --drop 으로 컬렉션을 지우고 채우므로 다시 돌려도 누적되지 않는다.
+#  - dump 는 디스크에 쓰지 않고 파이프로 흘린다 — 임시 볼륨이 없다.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-seed-from-prod
+  labels:
+    app: mongodb-seed-from-prod
+spec:
+  suspend: true
+  schedule: "0 0 1 1 *"
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: mongodb-seed-from-prod
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          containers:
+            - name: seed
+              # MongoDB 서버와 같은 이미지 — mongodump · mongorestore 가 들어 있다
+              image: quay.io/mongodb/mongodb-community-server:8.0.19-ubi8
+              command: ["bash", "-euo", "pipefail", "-c"]
+              args:
+                - |
+                  src="mongodb+srv://mongodb-readonly:${SRC_PASSWORD}@${SRC_HOST}/?authSource=admin&replicaSet=careerhub-mongodb&ssl=false&readPreference=secondary"
+
+                  copy() {
+                    local db="$1" dst="$2"
+                    echo "== ${db}: prod -> stg"
+                    mongodump --uri="${src}" --db="${db}" --archive \
+                      | mongorestore --uri="${dst}" --archive --drop --nsInclude="${db}.*"
+                  }
+
+                  copy posting "${DST_POSTING_URI}"
+                  copy review "${DST_REVIEW_URI}"
+                  echo "== done"
+              env:
+                - name: SRC_HOST
+                  value: careerhub-mongodb-svc.careerhub-prod.svc.cluster.local
+                - name: SRC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: prod-mongodb-readonly-password
+                      key: password
+                - name: DST_POSTING_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: careerhub-mongodb-posting-posting-migrator
+                      key: connectionString.standardSrv
+                - name: DST_REVIEW_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: careerhub-mongodb-review-review-migrator
+                      key: connectionString.standardSrv

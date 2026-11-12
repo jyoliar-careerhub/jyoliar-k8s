@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - ../../../../../../base/services/careerhub/mongodb
+  - seed-prod-readonly.yaml
+  - seed-cronjob.yaml
 
 patches:
   - path: mongodb-patch.yaml
