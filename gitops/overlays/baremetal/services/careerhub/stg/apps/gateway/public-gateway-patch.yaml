@@ -1,0 +1,25 @@
+# stg 공개 Gateway 는 터널 뒤가 아니라 VIP 로 직접 받는다.
+# - kube-vip 가 주소를 주도록 라벨을 단다
+# - HTTPS 리스너만 연다 — TLS 를 Cloudflare 가 종단하지 않고, 사람만 쓰는 진입로라 HTTP 리다이렉트를 두지 않는다
+#   (인증서는 내부 Gateway 와 같은 wildcard)
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: careerhub-public-gateway
+spec:
+  infrastructure:
+    labels:
+      implementation: kube-vip
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: wildcard-careerhub-tls
+      allowedRoutes:
+        namespaces:
+          from: All

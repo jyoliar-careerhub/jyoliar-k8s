@@ -1,0 +1,17 @@
+# prod 공개 Gateway 는 cloudflared 터널 뒤에 선다 — 클러스터 안 홉이라 HTTP 만 연다(TLS 는 Cloudflare 가 종단).
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: careerhub-public-gateway
+  annotations:
+    # ClusterIP Gateway 라 status 주소 대신 이 값이 레코드 대상이다.
+    # cftunnel 은 jyoliar-platform-terraform(shared-cloudflare)이 소유한 터널 안정 이름 — UUID 는 그쪽 안에서만 돈다.
+    external-dns.alpha.kubernetes.io/target: cftunnel.jyo-liar.com
+spec:
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All

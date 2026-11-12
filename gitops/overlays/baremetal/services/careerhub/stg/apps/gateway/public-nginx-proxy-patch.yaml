@@ -1,0 +1,10 @@
+# 터널 홉이 없으니 LoadBalancer 로 연다(내부 Gateway 와 같은 설정).
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: careerhub-public-nginx-proxy
+spec:
+  kubernetes:
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Cluster

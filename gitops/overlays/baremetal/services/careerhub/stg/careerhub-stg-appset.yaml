@@ -7,7 +7,7 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-    # 항목은 overlay 가 생길 때 더한다 — mongodb · postgresql 은 phase "1", apps 는 phase "2" (prod 와 같은 묶음)
+    # mongodb · postgresql 은 phase "1", apps 는 phase "2" (prod 와 같은 묶음)
     - list:
         elements:
           - name: careerhub-stg-mongodb
@@ -16,6 +16,9 @@ spec:
           - name: careerhub-stg-postgresql
             path: gitops/overlays/baremetal/services/careerhub/stg/postgresql
             phase: "1"
+          - name: careerhub-stg-apps
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps
+            phase: "2"
   strategy:
     type: RollingSync
     rollingSync:

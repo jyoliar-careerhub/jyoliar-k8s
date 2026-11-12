@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: careerhub-stg-apps
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: CareerHub stg applications
+  # Zitadel Helm 차트 저장소 · sourceNamespaces 는 Zitadel 을 얹는 Task 가 배포와 같은 커밋에 더한다.
+  sourceRepos:
+    - git@github.com:jyoliar-careerhub/jyoliar-k8s.git
+  destinations:
+    - namespace: careerhub-stg
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

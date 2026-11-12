@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: careerhub-stg-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    # 항목은 overlay 가 생길 때 더한다 — gateway · secrets · zitadel 은 phase "1", 서비스는 "2", jobs 는 "3" (prod 와 같은 묶음)
+    - list:
+        elements:
+          - name: careerhub-stg-gateway
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/gateway
+            phase: "1"
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["1"]
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["2"]
+        - matchExpressions:
+            - key: apps-phase
+              operator: In
+              values: ["3"]
+  template:
+    metadata:
+      name: "{{ .name }}"
+      labels:
+        apps-phase: "{{ .phase }}"
+    spec:
+      project: careerhub-stg-apps
+      source:
+        repoURL: git@github.com:jyoliar-careerhub/jyoliar-k8s.git
+        targetRevision: main
+        path: "{{ .path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: careerhub-stg
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - CreateNamespace=true
