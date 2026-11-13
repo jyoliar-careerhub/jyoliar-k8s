@@ -1,47 +1,35 @@
 # 레거시 세대(auth-service v0.2.x) 배선 — base 는 신 세대(OIDC)다.
 # prod 는 컷오버(#79)까지 레거시 이미지로 돌므로, base 의 OIDC env 를 지우고
-# Google OAuth env · jwt-secretkey 를 되살린다. 컷오버의 env 전환 = 이 patch 삭제.
-#
-# JSON6902 인 이유: prod 렌더가 변경 전과 바이트 단위로 같아야 하는데(env 순서 포함),
-# strategic merge 는 되살린 항목의 자리를 정하지 못하고(실측: env 앞쪽으로 들어간다)
-# kustomize 는 순서 지시어 $setElementOrder 를 모른다.
-# OIDC 두 항목이 있던 자리에 Google 세 항목을 그대로 끼운다. test 는 base 가 움직였을 때
-# 조용히 엉뚱한 항목을 바꾸지 않고 렌더를 실패시키는 가드다.
-- op: test
-  path: /spec/template/spec/containers/0/name
-  value: auth-service
-- op: test
-  path: /spec/template/spec/containers/0/env/4/name
-  value: OIDC_ISSUER
-- op: test
-  path: /spec/template/spec/containers/0/env/5/name
-  value: OIDC_AUDIENCE
-- op: replace
-  path: /spec/template/spec/containers/0/env/4
-  value:
-    name: GOOGLE_CLIENT_ID
-    valueFrom:
-      secretKeyRef:
-        name: google-oauth
-        key: GOOGLE_CLIENT_ID
-- op: replace
-  path: /spec/template/spec/containers/0/env/5
-  value:
-    name: GOOGLE_CLIENT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: google-oauth
-        key: GOOGLE_CLIENT_SECRET
-- op: add
-  path: /spec/template/spec/containers/0/env/6
-  value:
-    name: GOOGLE_REDIRECT_URL
-    valueFrom:
-      secretKeyRef:
-        name: google-oauth
-        key: GOOGLE_REDIRECT_URL
-- op: add
-  path: /spec/template/spec/containers/0/envFrom
-  value:
-    - secretRef:
-        name: jwt-secretkey
+# Google OAuth env · jwt-secretkey 를 되살린다. 컷오버의 env 전환 = 이 파일 삭제.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: auth-service
+          env:
+            - name: OIDC_ISSUER
+              $patch: delete
+            - name: OIDC_AUDIENCE
+              $patch: delete
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: GOOGLE_CLIENT_SECRET
+            - name: GOOGLE_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: GOOGLE_REDIRECT_URL
+          envFrom:
+            - secretRef:
+                name: jwt-secretkey
