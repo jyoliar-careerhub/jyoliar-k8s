@@ -21,10 +21,3 @@ spec:
           # devMode — 위 http·localhost를 Zitadel이 받게 하는 스위치다. 이 앱에 한정되고,
           # localhost 항목과 수명을 같이한다(함께 지운다).
           devMode: true
-  # 발급 훅(auth-service-claims)을 stg 에서 비운다 — stg 에는 아직 auth-service 가 없어
-  # Zitadel 이 target 등록을 DeniedURL 로 거부하고 구성 Job 이 실패한다(ops-workflow#170, 사람 지시).
-  # function execution 은 fail-closed 이므로 target 만 비우면 로그인이 막힌다 — 둘을 함께 비운다.
-  # 복원 조건 — stg 에 auth-service 가 서는 시점(백엔드 apps Task)에 이 절을 지운다.
-  actions:
-    targets: []
-    executions: []
