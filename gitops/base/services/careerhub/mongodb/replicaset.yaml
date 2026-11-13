@@ -102,6 +102,18 @@ spec:
           labels:
             scheduling.mongodb.com/cluster: careerhub
         spec:
+          containers:
+            # operator 기본값은 memory limit 500M — 평소 사용량(약 400M)에 여유가 100M 뿐이라
+            # 인덱스 빌드 · 컨테이너 안 mongosh 같은 일시 부하에 OOM 으로 죽는다. limit 만 올린다
+            # (WiredTiger 캐시는 256MB 그대로라 평소 사용량은 늘지 않는다). 나머지는 operator 기본값과 같다.
+            - name: mongod
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                requests:
+                  cpu: 500m
+                  memory: 400M
           affinity:
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
