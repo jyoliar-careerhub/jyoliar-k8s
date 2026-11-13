@@ -39,5 +39,8 @@ spec:
   data:
     - secretKey: password
       remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
         key: mongodb-readonly-password
+        metadataPolicy: None
         property: password
