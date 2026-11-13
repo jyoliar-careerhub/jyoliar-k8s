@@ -1,0 +1,20 @@
+# 레거시 세대(api-composer v0.4.x) 배선 — base 는 신 세대(OIDC)다.
+# prod 는 컷오버(#79)까지 레거시 이미지로 돌므로, base 의 OIDC env 를 지우고
+# jwt-secretkey 를 되살린다. 컷오버의 env 전환 = 이 파일 삭제.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-composer
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-composer
+          env:
+            - name: OIDC_ISSUER
+              $patch: delete
+            - name: OIDC_AUDIENCE
+              $patch: delete
+          envFrom:
+            - secretRef:
+                name: jwt-secretkey

@@ -6,6 +6,7 @@ resources:
 
 patches:
   - path: domain-patch.yaml
+  - path: legacy-auth-patch.yaml
 
 images:
   - name: AUTH_SERVICE

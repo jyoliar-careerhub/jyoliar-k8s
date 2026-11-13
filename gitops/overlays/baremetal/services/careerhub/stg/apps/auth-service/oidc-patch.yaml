@@ -1,0 +1,19 @@
+# 발급자 = stg 전용 Zitadel(stg/apps/zitadel 의 ExternalDomain).
+# JWKS 는 {issuer}/oauth/v2/keys — 이 호스트는 stg 내부 Gateway VIP 로 해석돼 파드에서 닿는다.
+#
+# ACCESS_CONTROL_ALLOW_ORIGIN 은 지운다 — careerhub-web 이 BFF 라 auth-service 에 공개 호스트가 없고
+# 브라우저가 직접 부르지 않는다(CORS 소멸). 비우면 서비스는 교차 출처 허용 목록을 비운 채 뜬다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: auth-service
+          env:
+            - name: OIDC_ISSUER
+              value: "https://id.stg-careerhub.jyo-liar.com"
+            - name: ACCESS_CONTROL_ALLOW_ORIGIN
+              $patch: delete

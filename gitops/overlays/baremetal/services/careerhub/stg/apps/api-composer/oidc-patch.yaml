@@ -1,0 +1,14 @@
+# 발급자 = stg 전용 Zitadel(stg/apps/zitadel 의 ExternalDomain).
+# JWKS 는 {issuer}/oauth/v2/keys — 이 호스트는 stg 내부 Gateway VIP 로 해석돼 파드에서 닿는다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-composer
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-composer
+          env:
+            - name: OIDC_ISSUER
+              value: "https://id.stg-careerhub.jyo-liar.com"

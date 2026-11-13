@@ -39,21 +39,16 @@ spec:
             # 기동 필수값(기본값 없음) — v0.1.0 이전 이미지는 이 env를 모른 채 무시한다.
             - name: ISSUANCE_HOOK_PORT
               value: "8081"
-            - name: GOOGLE_CLIENT_ID
+            # 발급자 검증(ADR-0029) — 기동 필수값. 없으면 신 세대 이미지는 즉시 종료한다.
+            # JWKS는 {issuer}/oauth/v2/keys에서 받는다(OIDC_JWKS_URL 선택 — 비우면 그 규약).
+            - name: OIDC_ISSUER
+              value: "OVERRIDE_REQUIRED"
+            # careerhub-web의 client_id — Zitadel 구성 Job이 같은 ns에 쓰는 앱 자격증명 Secret.
+            - name: OIDC_AUDIENCE
               valueFrom:
                 secretKeyRef:
-                  name: google-oauth
-                  key: GOOGLE_CLIENT_ID
-            - name: GOOGLE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: google-oauth
-                  key: GOOGLE_CLIENT_SECRET
-            - name: GOOGLE_REDIRECT_URL
-              valueFrom:
-                secretKeyRef:
-                  name: google-oauth
-                  key: GOOGLE_REDIRECT_URL
+                  name: zitadel-app-careerhub-web
+                  key: client_id
             - name: ACCESS_CONTROL_ALLOW_ORIGIN
               value: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_VALUE"
             - name: DB_HOST
@@ -88,6 +83,3 @@ spec:
                   fieldPath: metadata.namespace
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "deployment.environment=$(POD_NAMESPACE)"
-          envFrom:
-            - secretRef:
-                name: jwt-secretkey

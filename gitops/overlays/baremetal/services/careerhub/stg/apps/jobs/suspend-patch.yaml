@@ -1,0 +1,28 @@
+# stg 는 수집을 스케줄로 돌리지 않는다 — 필요할 때 kubectl create job --from=cronjob/<name> 으로 한 번씩 돌린다.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-provider-wanted
+spec:
+  suspend: true
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-provider-jumpit
+spec:
+  suspend: true
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: posting-skillscanner
+spec:
+  suspend: true
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: review-crawler
+spec:
+  suspend: true
