@@ -40,5 +40,9 @@ python3 smoke_test.py
    public→confidential 전환 직후) → 재수렴해 재발급 — 존재만 보면 이 상태가
    "무변경"에 묻힌다.
 
-fixture 선언 2종은 실선언(overlays/.../zitadel-config.yaml)의 축약 고정본이다 —
-실선언 변경을 추적할 의무는 없고, 스크립트 로직이 읽는 구조만 유지하면 된다.
+fixture 선언 2종은 실선언의 축약 고정본이다 — 실선언은 base의 환경 무관 선언
+(`config/zitadel-config.yaml`의 `spec`)에 overlay의 환경값 patch
+(`overlays/.../zitadel-config-env/zitadel-config-patch.yaml`)가 병합되어 `zitadel-config`
+ConfigMap에 렌더된 것이다. 실선언 변경을 추적할 의무는 없고, 스크립트 로직이 읽는
+구조만 유지하면 된다 — `project.apps`는 앱 이름을 키로 하는 맵이다(목록 표기는
+스크립트가 거부한다).

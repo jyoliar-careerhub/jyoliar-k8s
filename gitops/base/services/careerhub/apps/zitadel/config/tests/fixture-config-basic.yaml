@@ -12,7 +12,7 @@ idps:
 project:
   name: careerhub
   apps:
-    - name: careerhub-web
+    careerhub-web:
       credentialsSecret: zitadel-app-careerhub-web
       oidc:
         redirectUris: [https://careerhub.example.test/auth/callback]

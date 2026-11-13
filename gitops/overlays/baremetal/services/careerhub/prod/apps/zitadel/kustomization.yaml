@@ -4,16 +4,13 @@ kind: Kustomization
 resources:
   - ../../../../../../../base/services/careerhub/apps/zitadel
 
+# 순서가 의미를 가진다 — 환경값 patch가 먼저, 복사가 나중이다.
+# 뒤집으면 오류 없이 렌더되지만 환경값이 빠진 선언이 ConfigMap에 들어간다.
+components:
+  - zitadel-config-env
+  - ../../../../../../../base/services/careerhub/apps/zitadel/config-render
+
 patches:
   - path: masterkey-externalsecret-patch.yaml
   - path: application-patch.yaml
   - path: config-job-patch.yaml
-
-# Zitadel 내부 구성의 원하는 상태 — 환경별 값(redirect URI 등)이라 overlay 소유.
-# hash suffix를 끄는 이유는 base kustomization의 주석과 같다.
-configMapGenerator:
-  - name: zitadel-config
-    files:
-      - zitadel-config.yaml
-generatorOptions:
-  disableNameSuffixHash: true

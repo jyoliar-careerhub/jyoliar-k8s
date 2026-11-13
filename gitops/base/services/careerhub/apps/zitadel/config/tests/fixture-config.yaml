@@ -1,4 +1,4 @@
-# smoke_test.py 전용 fixture — 실선언(overlays/.../zitadel-config.yaml)의 축약 고정본.
+# smoke_test.py 전용 fixture — 실선언(base config/zitadel-config.yaml + overlay patch)의 축약 고정본.
 # 배포되지 않는다(tests/README.md). public client(NONE) + credentialsSecret 시나리오.
 idps:
   - name: Google
@@ -12,7 +12,7 @@ idps:
 project:
   name: careerhub
   apps:
-    - name: careerhub-web
+    careerhub-web:
       credentialsSecret: zitadel-app-careerhub-web
       oidc:
         redirectUris: [https://careerhub.example.test/auth/callback]
