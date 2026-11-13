@@ -3,7 +3,8 @@
 # Google OAuth env · jwt-secretkey 를 되살린다. 컷오버의 env 전환 = 이 patch 삭제.
 #
 # JSON6902 인 이유: prod 렌더가 변경 전과 바이트 단위로 같아야 하는데(env 순서 포함),
-# strategic merge 는 되살린 항목을 목록 끝에 붙이고 kustomize 는 $setElementOrder 를 모른다.
+# strategic merge 는 되살린 항목의 자리를 정하지 못하고(실측: env 앞쪽으로 들어간다)
+# kustomize 는 순서 지시어 $setElementOrder 를 모른다.
 # OIDC 두 항목이 있던 자리에 Google 세 항목을 그대로 끼운다. test 는 base 가 움직였을 때
 # 조용히 엉뚱한 항목을 바꾸지 않고 렌더를 실패시키는 가드다.
 - op: test
