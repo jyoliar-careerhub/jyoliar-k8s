@@ -1,0 +1,31 @@
+# 앱 라우트 — stg 호스트의 / → careerhub-web(BFF) 하나.
+# - 공개 Gateway 의 https 리스너에 붙는다(stg 공개 Gateway 는 https 리스너뿐이고, VIP 사설 IP 로만 노출된다).
+#   external-dns 가 이 라우트에서 부모 Gateway 주소(사설 IP)로 레코드를 만든다.
+# - 터널이 없으니 cloudflare-proxied 를 걷는다 — 프록시 레코드는 사설 IP 를 가리킬 수 없다.
+# - 레거시 백엔드(frontend · /api → composer)는 두지 않는다 — composer 는 web 의 서버만 내부 주소로 부른다.
+# careerhub-trace(ObservabilityPolicy)는 이 라우트 이름을 가리키므로 그대로 붙는다.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: careerhub-httproute
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: null
+spec:
+  hostnames:
+    - stg-careerhub.jyo-liar.com
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: careerhub-public-gateway
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ''
+          kind: Service
+          name: careerhub-web
+          port: 80
+          weight: 1

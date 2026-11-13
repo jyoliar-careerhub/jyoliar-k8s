@@ -1,0 +1,54 @@
+# careerhub-web — BFF. 브라우저는 web 만 부르고, web 의 서버가 api-composer · auth-service 를 클러스터 내부 주소로 부른다.
+# env 는 전부 서버 전용이다 — NEXT_PUBLIC_ 접두 env 를 두지 않는다(값이 클라이언트 번들에 실린다).
+# 이미지에 이미 있는 값: NODE_ENV=production · PORT=3000 · HOSTNAME=0.0.0.0 · NEXT_TELEMETRY_DISABLED=1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: careerhub-web
+  labels:
+    app: careerhub-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: careerhub-web
+  template:
+    metadata:
+      labels:
+        app: careerhub-web
+    spec:
+      restartPolicy: Always
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      imagePullSecrets:
+        - name: ecr-pull-secret
+      containers:
+        - name: careerhub-web
+          image: CAREERHUB_WEB
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # Zitadel 공개 주소 — authorize · token · end_session endpoint 가 여기서 파생한다.
+            - name: ZITADEL_ISSUER
+              value: "OVERRIDE_REQUIRED"
+            # Zitadel 구성 Job 이 같은 ns 에 쓰는 앱 자격증명 Secret(public client — secret 은 쓰지 않는다).
+            - name: ZITADEL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-app-careerhub-web
+                  key: client_id
+            # 앱의 공개 주소 — redirect URI({origin}/auth/callback) · post-logout URI({origin}/)의 origin.
+            # Zitadel 에 등록된 redirect URI 와 문자 그대로 같아야 한다.
+            - name: AUTH_APP_ORIGIN
+              value: "OVERRIDE_REQUIRED"
+            - name: AUTH_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: careerhub-web-cookie-secret
+                  key: AUTH_COOKIE_SECRET
+            # 같은 ns 의 내부 주소. composer 는 ROOT_PATH(/api) 아래에 마운트돼 있다.
+            - name: API_BASE_URL
+              value: "http://api-composer/api"
+            - name: AUTH_SERVICE_BASE_URL
+              value: "http://auth-service"
