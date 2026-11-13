@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../../../../../base/services/careerhub/apps/review-grpc
+
+# 태그는 prod overlay 와 같게 시작한다 — 이 서비스는 세대 차이(env · Secret)가 없다.
+images:
+  - name: REVIEW_SERVICE
+    newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-review-service
+    newTag: v0.2.3

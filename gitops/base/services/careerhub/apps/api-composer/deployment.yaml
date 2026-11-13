@@ -36,6 +36,16 @@ spec:
               value: "userinfo-restapi:80"
             - name: REVIEW_GRPC_ENDPOINT
               value: "review-restapi:80"
+            # 발급자 검증(ADR-0029) — 기동 필수값. 없으면 신 세대 이미지는 즉시 종료한다.
+            # JWKS는 {issuer}/oauth/v2/keys에서 받는다(OIDC_JWKS_URL 선택 — 비우면 그 규약).
+            - name: OIDC_ISSUER
+              value: "OVERRIDE_REQUIRED"
+            # careerhub-web의 client_id — Zitadel 구성 Job이 같은 ns에 쓰는 앱 자격증명 Secret.
+            - name: OIDC_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-app-careerhub-web
+                  key: client_id
             # OTel 트레이싱 (Phase 4-B) — Alloy(careerhub 텐넌트 전용)로 OTLP gRPC 송신.
             # X-Scope-OrgID 헤더는 Alloy가 상수 하드코딩으로 박으므로 본 컨테이너는 헤더 무지.
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -52,6 +62,3 @@ spec:
                   fieldPath: metadata.namespace
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "deployment.environment=$(POD_NAMESPACE)"
-          envFrom:
-            - secretRef:
-                name: jwt-secretkey

@@ -7,7 +7,7 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-    # 항목은 overlay 가 생길 때 더한다 — gateway · secrets · zitadel 은 phase "1", 서비스는 "2", jobs 는 "3" (prod 와 같은 묶음)
+    # gateway · secrets · zitadel 은 phase "1", 서비스는 "2", jobs 는 "3" (prod 와 같은 묶음) — 레거시 frontend 는 stg 에 두지 않는다
     - list:
         elements:
           - name: careerhub-stg-gateway
@@ -19,6 +19,24 @@ spec:
           - name: careerhub-stg-zitadel
             path: gitops/overlays/baremetal/services/careerhub/stg/apps/zitadel
             phase: "1"
+          - name: careerhub-stg-review-grpc
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/review-grpc
+            phase: "2"
+          - name: careerhub-stg-posting-grpc
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/posting-grpc
+            phase: "2"
+          - name: careerhub-stg-userinfo-grpc
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/userinfo-grpc
+            phase: "2"
+          - name: careerhub-stg-api-composer
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/api-composer
+            phase: "2"
+          - name: careerhub-stg-auth-service
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/auth-service
+            phase: "2"
+          - name: careerhub-stg-jobs
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/jobs
+            phase: "3"
   strategy:
     type: RollingSync
     rollingSync:

@@ -4,7 +4,13 @@ kind: Kustomization
 resources:
   - ../../../../../../../base/services/careerhub/apps/auth-service
 
+# 순서가 의미를 가진다 — legacy-auth-patch 는 base 의 env 자리(index)를 가정하므로 먼저 적용한다.
+# domain-patch(strategic merge)는 patch 한 항목을 env 맨 앞으로 옮긴다.
 patches:
+  - path: legacy-auth-patch.yaml
+    target:
+      kind: Deployment
+      name: auth-service
   - path: domain-patch.yaml
 
 images:
