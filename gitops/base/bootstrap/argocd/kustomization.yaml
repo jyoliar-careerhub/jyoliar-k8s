@@ -4,7 +4,7 @@ namespace: argocd
 
 resources:
   - namespace.yaml
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.1/manifests/ha/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.13/manifests/ha/install.yaml
   # - argocd-server-clusterrole.yaml
   - argocd-server-apps-update-clusterrole.yaml
 
