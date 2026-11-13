@@ -8,6 +8,7 @@ spec:
   goTemplateOptions: ["missingkey=error"]
   generators:
     # gateway · secrets · zitadel 은 phase "1", 서비스는 "2", jobs 는 "3" (prod 와 같은 묶음) — 레거시 frontend 는 stg 에 두지 않는다
+    # careerhub-web(BFF)은 그것이 부르는 백엔드(api-composer · auth-service) 뒤인 "3"
     - list:
         elements:
           - name: careerhub-stg-gateway
@@ -36,6 +37,9 @@ spec:
             phase: "2"
           - name: careerhub-stg-jobs
             path: gitops/overlays/baremetal/services/careerhub/stg/apps/jobs
+            phase: "3"
+          - name: careerhub-stg-careerhub-web
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/careerhub-web
             phase: "3"
   strategy:
     type: RollingSync

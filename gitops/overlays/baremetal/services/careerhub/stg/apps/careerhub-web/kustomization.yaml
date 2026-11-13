@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../../../../../base/services/careerhub/apps/careerhub-web
+
+patches:
+  - path: env-patch.yaml
+
+# 첫 릴리스 — ops-workflow#166
+images:
+  - name: CAREERHUB_WEB
+    newName: 986069063944.dkr.ecr.ap-northeast-2.amazonaws.com/careerhub-web
+    newTag: v0.0.1

@@ -1,0 +1,17 @@
+# 발급자 = stg 전용 Zitadel(stg/apps/zitadel 의 ExternalDomain) — 파드에서 stg 내부 Gateway VIP 로 닿는다.
+# 앱 origin = stg 앱 라우트의 호스트(stg/apps/gateway/httproute-patch.yaml). Zitadel 에 등록된
+# redirect URI(https://stg-careerhub.jyo-liar.com/auth/callback)의 origin 과 같아야 한다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: careerhub-web
+spec:
+  template:
+    spec:
+      containers:
+        - name: careerhub-web
+          env:
+            - name: ZITADEL_ISSUER
+              value: "https://id.stg-careerhub.jyo-liar.com"
+            - name: AUTH_APP_ORIGIN
+              value: "https://stg-careerhub.jyo-liar.com"
