@@ -32,12 +32,19 @@ spec:
             # Zitadel 공개 주소 — authorize · token · end_session endpoint 가 여기서 파생한다.
             - name: ZITADEL_ISSUER
               value: "OVERRIDE_REQUIRED"
-            # Zitadel 구성 Job 이 같은 ns 에 쓰는 앱 자격증명 Secret(public client — secret 은 쓰지 않는다).
+            # Zitadel 구성 Job 이 같은 ns 에 쓰는 앱 자격증명 Secret.
+            # confidential client(WEB + BASIC) — code 교환 · 갱신에 client_secret 을 Basic 인증으로 싣는다.
+            # 빠지면 콜백이 "empty client secret" 으로 실패한다.
             - name: ZITADEL_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: zitadel-app-careerhub-web
                   key: client_id
+            - name: ZITADEL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-app-careerhub-web
+                  key: client_secret
             # 앱의 공개 주소 — redirect URI({origin}/auth/callback) · post-logout URI({origin}/)의 origin.
             # Zitadel 에 등록된 redirect URI 와 문자 그대로 같아야 한다.
             - name: AUTH_APP_ORIGIN
