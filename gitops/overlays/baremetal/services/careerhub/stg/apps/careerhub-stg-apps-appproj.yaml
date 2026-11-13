@@ -7,12 +7,19 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   description: CareerHub stg applications
-  # Zitadel Helm 차트 저장소 · sourceNamespaces 는 Zitadel 을 얹는 Task 가 배포와 같은 커밋에 더한다.
   sourceRepos:
     - git@github.com:jyoliar-careerhub/jyoliar-k8s.git
+    # Zitadel Helm 차트 — zitadel-helm Application의 source.
+    # 배포와 같은 커밋이어야 첫 sync가 성립한다.
+    - https://charts.zitadel.com
   destinations:
     - namespace: careerhub-stg
       server: https://kubernetes.default.svc
+  # zitadel app이 만드는 Application/zitadel-helm이 careerhub-stg에 산다
+  # (apps-in-any-namespace) — argocd 밖의 Application이 이 project를 쓰기
+  # 위한 허용 목록.
+  sourceNamespaces:
+    - careerhub-stg
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

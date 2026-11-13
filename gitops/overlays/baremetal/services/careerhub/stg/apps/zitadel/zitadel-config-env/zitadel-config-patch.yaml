@@ -1,0 +1,23 @@
+# Zitadel 구성 선언의 환경값 — careerhub-stg.
+# base 선언(config/zitadel-config.yaml)과 같은 모양으로, careerhub-web 앱의 redirect · devMode 만 적는다
+# — 그 밖의 선언 필드는 stg 에서 덮어쓰지 않는다. 경로는 prod patch 와 같다.
+# 이 파일의 주석은 렌더된 ConfigMap에 실리지 않는다 — 저장소에서 읽는 사람을 위한 것이다.
+apiVersion: careerhub.jyo-liar.com/v1alpha1
+kind: ZitadelConfig
+metadata:
+  name: zitadel-config
+spec:
+  project:
+    apps:
+      careerhub-web:
+        oidc:
+          # localhost 항목은 개발기 로그인용이다 — 개발기의 careerhub-web 이 stg Zitadel 로 로그인한다.
+          redirectUris:
+            - https://stg-careerhub.jyo-liar.com/auth/callback
+            - http://localhost:3000/auth/callback
+          postLogoutRedirectUris:
+            - https://stg-careerhub.jyo-liar.com/
+            - http://localhost:3000/
+          # devMode — 위 http·localhost를 Zitadel이 받게 하는 스위치다. 이 앱에 한정되고,
+          # localhost 항목과 수명을 같이한다(함께 지운다).
+          devMode: true

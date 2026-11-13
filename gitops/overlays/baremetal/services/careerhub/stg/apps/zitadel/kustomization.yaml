@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# stg 전용 Zitadel 인스턴스 — prod 와 원장(DB) · masterkey · Google 클라이언트를 공유하지 않는다.
+resources:
+  - ../../../../../../../base/services/careerhub/apps/zitadel
+
+# 순서가 의미를 가진다 — 환경값 patch가 먼저, 복사가 나중이다.
+# 뒤집으면 오류 없이 렌더되지만 환경값이 빠진 선언이 ConfigMap에 들어간다.
+components:
+  - zitadel-config-env
+  - ../../../../../../../base/services/careerhub/apps/zitadel/config-render
+
+patches:
+  - path: masterkey-externalsecret-patch.yaml
+  - path: application-patch.yaml
+  - path: config-job-patch.yaml
