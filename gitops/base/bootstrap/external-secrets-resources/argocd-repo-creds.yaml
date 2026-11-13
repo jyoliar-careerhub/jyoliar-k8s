@@ -23,4 +23,7 @@ spec:
   data:
     - secretKey: sshPrivateKey
       remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
         key: "REPLACE_WITH_ENVIRONMENT_SPECIFIC_KEY"
+        metadataPolicy: None
