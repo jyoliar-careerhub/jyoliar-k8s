@@ -13,6 +13,12 @@ spec:
           - name: careerhub-stg-gateway
             path: gitops/overlays/baremetal/services/careerhub/stg/apps/gateway
             phase: "1"
+          - name: careerhub-stg-secrets
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/secrets
+            phase: "1"
+          - name: careerhub-stg-zitadel
+            path: gitops/overlays/baremetal/services/careerhub/stg/apps/zitadel
+            phase: "1"
   strategy:
     type: RollingSync
     rollingSync:

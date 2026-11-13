@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel-helm
+spec:
+  destination:
+    namespace: careerhub-stg
+  project: careerhub-stg-apps
+  source:
+    helm:
+      valuesObject:
+        zitadel:
+          configmapConfig:
+            # 구성 Job 의 ZITADEL_EXTERNAL_DOMAIN(config-job-patch.yaml)과 같은 값이어야 한다.
+            # HTTPRoute(본체·login) hostnames도 차트가 이 값에서 파생한다 — stg 내부 Gateway(Tailscale)로 받는다.
+            ExternalDomain: id.stg-careerhub.jyo-liar.com

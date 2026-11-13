@@ -1,0 +1,7 @@
+# 환경값 patch를 Component로 감싼다 — 복사 Component(base의 config-render)보다
+# 먼저 실행되게 하려는 것이다. 상위 kustomization의 patches에 적으면 복사가 먼저 일어난다.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - path: zitadel-config-patch.yaml
