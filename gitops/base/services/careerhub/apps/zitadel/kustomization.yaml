@@ -1,14 +1,20 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# 선언은 둘로 나뉜다 — config/zitadel-config.yaml(환경 무관 선언, 배포되지 않는다)과
+# config/zitadel-config-configmap.yaml(구성 Job이 마운트하는 ConfigMap, 자리표시).
+# overlay가 환경값 patch를 선언에 얹고, config-render Component로 그 결과를
+# ConfigMap 안에 옮긴다 — config-render는 여기서 참조하지 않는다(overlay가 참조).
 resources:
   - masterkey-externalsecret.yaml
   - login-service-key.yaml
   - application.yaml
   - config/config-job.yaml
   - config/config-rbac.yaml
+  - config/zitadel-config.yaml
+  - config/zitadel-config-configmap.yaml
 
-# 구성 스크립트 — 선언(zitadel-config, overlay가 생성)과 짝을 이룬다.
+# 구성 스크립트 — 선언(zitadel-config ConfigMap)과 짝을 이룬다.
 # hash suffix를 끈다: Job이 PostSync hook(BeforeHookCreation)이라 sync마다
 # 재생성되어 최신 내용을 읽고, ApplicationSet이 prune: false라 suffix본이
 # 변경마다 누적되기 때문이다.

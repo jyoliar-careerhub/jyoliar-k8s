@@ -99,9 +99,9 @@ class AppSpec:
     credentials_secret: str | None  # 자격증명을 기록할 k8s Secret 이름(옵트인)
 
     @classmethod
-    def parse(cls, node: JsonObj) -> "AppSpec":
+    def parse(cls, name: str, node: JsonObj) -> "AppSpec":
         return cls(
-            name=node["name"],
+            name=name,
             oidc=node["oidc"],
             credentials_secret=node.get("credentialsSecret"),
         )
@@ -138,9 +138,12 @@ class ProjectSpec:
 
     @classmethod
     def parse(cls, node: JsonObj) -> "ProjectSpec":
+        apps = node.get("apps") or {}
+        if not isinstance(apps, dict):
+            fail("project.apps는 앱 이름을 키로 하는 맵이어야 한다 — 목록(- name: …) 표기는 지원하지 않는다")
         return cls(
             name=node["name"],
-            apps=[AppSpec.parse(a) for a in node.get("apps") or []],
+            apps=[AppSpec.parse(name, app) for name, app in apps.items()],
         )
 
 

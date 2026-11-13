@@ -1,0 +1,38 @@
+# 병합된 선언(ZitadelConfig)을 zitadel-config ConfigMap 안으로 옮긴다 — 최상위 절 셋을 통째로.
+# 환경 무관 · 고정 규칙이다 — 환경값이 늘어도 여기는 고치지 않고 overlay의 patch 파일만 고친다.
+# overlay는 components 목록에서 환경값 patch Component 뒤에 이것을 둔다.
+# ConfigMap 안의 YAML 내부를 겨냥하는 fieldPath는 kustomize v5.8.0 이상이 필요하다.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+replacements:
+  - source:
+      kind: ZitadelConfig
+      name: zitadel-config
+      fieldPath: spec.idps
+    targets:
+      - select:
+          kind: ConfigMap
+          name: zitadel-config
+        fieldPaths:
+          - data.zitadel-config\.yaml.idps
+  - source:
+      kind: ZitadelConfig
+      name: zitadel-config
+      fieldPath: spec.project
+    targets:
+      - select:
+          kind: ConfigMap
+          name: zitadel-config
+        fieldPaths:
+          - data.zitadel-config\.yaml.project
+  - source:
+      kind: ZitadelConfig
+      name: zitadel-config
+      fieldPath: spec.actions
+    targets:
+      - select:
+          kind: ConfigMap
+          name: zitadel-config
+        fieldPaths:
+          - data.zitadel-config\.yaml.actions
